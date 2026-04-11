@@ -1,50 +1,59 @@
 // Demo Engine for Case Keeper 2.0 Interactive Product Demo
-// Timeline-driven narrative that walks a law firm owner through
-// the cost of trapped expertise and how Case Keeper solves it.
+// Timeline-driven narrative for autistic business owners.
+//
+// Design principles:
+// 1. Rigid template: every screen follows the same skeleton
+// 2. Explicit framing: context label before every visual
+// 3. One idea per screen: no parallel processing required
+// 4. Declarative CTAs: every button says what clicking will show
+// 5. BECAUSE connectors: causation is never implied, always stated
+// 6. 11 screens: ACT 1 (problem) → ACT 2 (what happened) → ACT 3 (solution)
 
 export interface DemoEvent {
-  time: number;           // seconds from start (0 = wait for interactive tap)
-  phase: string;          // phase identifier
-  title: string;          // short, punchy phase title
-  narration: string;      // 1-2 sentences max
-  innerThought?: string;  // Maria's private thought - what the owner never heard
-  chatMessage?: string;   // team chat message that slides in
-  chatFrom?: string;      // who sent it
-  interactive?: boolean;  // if true, pause until viewer taps
-  interactivePrompt?: string; // CTA text for the tap button
+  time: number;
+  phase: string;
+  title: string;
+  contextLabel: string;       // REQUIRED: what you're about to see (gray caps)
+  narration: string;          // The key narrative text
+  innerThought?: string;
+  chatMessage?: string;
+  chatFrom?: string;
+  interactive?: boolean;
+  interactivePrompt?: string;
   dashboardState?: 'normal' | 'warning' | 'crisis' | 'resolved';
   caseStatus?: string;
-  showBefore?: boolean;
-  showAfter?: boolean;
-  showDigest?: boolean;
-  showWorkflow?: boolean;
-  showTraining?: boolean;
   highlightField?: string;
-  textThread?: { from: string; messages: string[]; }; // iMessage-style thread
-  recruitCost?: boolean; // Show the recruitment cost splash
-  bgImage?: string; // Background illustration path
+  textThread?: { from: string; messages: string[]; };
+  recruitCost?: boolean;
+  bgImage?: string;
 }
 
 export const DEMO_TIMELINE: DemoEvent[] = [
-  // Phase 0: SETUP - establish who you are before anything happens
+  // ═══════════════════════════════════════════════════════════════
+  // ACT 1: THE PROBLEM (3 screens)
+  // ═══════════════════════════════════════════════════════════════
+
+  // Screen 1: SETUP
   {
     time: 0,
     phase: 'setup',
     title: 'This Is Your Law Firm',
-    narration: '',
+    contextLabel: 'Before we begin',
+    narration: 'Then one Tuesday morning, your phone buzzes.',
     interactive: true,
-    interactivePrompt: 'What happened next',
+    interactivePrompt: 'See what happened',
     dashboardState: 'normal',
   },
 
-  // Phase 1: HOOK - now the texts have context
+  // Screen 2: HOOK
   {
     time: 0,
     phase: 'hook',
     title: 'Tuesday Morning',
-    narration: '',
+    contextLabel: 'This is a text message from your employee',
+    narration: 'Third one this year.',
     interactive: true,
-    interactivePrompt: 'What does this cost?',
+    interactivePrompt: 'See what it costs',
     dashboardState: 'normal',
     textThread: {
       from: 'Maria Lopez',
@@ -57,172 +66,141 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     },
   },
 
-  // Phase 1b: THE COST
+  // Screen 3: COST
   {
     time: 0,
     phase: 'cost-splash',
-    title: '',
-    narration: '',
+    title: 'The Cost of Losing Them',
+    contextLabel: 'This is what replacing two attorneys costs your firm',
+    narration: 'People don\'t quit jobs they can\'t afford to lose — unless something is really wrong.',
     dashboardState: 'crisis',
     recruitCost: true,
     interactive: true,
-    interactivePrompt: 'Rewind to last Monday',
+    interactivePrompt: 'See how this happened',
     bgImage: '/demo-images/02-empty-desks.jpg',
   },
 
-  // Phase 2: CALM - establish the normal
+  // ═══════════════════════════════════════════════════════════════
+  // ACT 2: WHAT HAPPENED (4 screens)
+  // ═══════════════════════════════════════════════════════════════
+
+  // Screen 4: CALM
   {
     time: 0,
     phase: 'calm',
     title: 'Rewind to Last Monday',
-    narration: 'Your firm had 8 active cases. Your two associates were handling their caseloads. Everything looked normal.',
-    chatMessage: 'Good morning! Starting on the Gutierrez asylum case today.',
+    contextLabel: 'This is what your firm dashboard looked like one week before she quit',
+    narration: 'No red flags. No complaints. No way to know what was coming.',
+    chatMessage: 'Good morning! Starting on the Gutierrez case today.',
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
     interactive: true,
-    interactivePrompt: 'Then came Tuesday',
+    interactivePrompt: 'See what happened Tuesday',
   },
 
-  // Phase 3: FIRST SIGN - the invisible problem
+  // Screen 5: SILENT FAILURE
   {
     time: 0,
-    phase: 'first-sign',
-    title: 'Tuesday - Maria Gets Stuck',
-    narration: 'Maria was working the Gutierrez asylum case. She hit a step she didn\'t understand: "Determine Concurrent Filing." She didn\'t ask you for help.',
-    innerThought: 'What does concurrent filing mean? I should know this. She\'ll think I\'m not qualified if I ask.',
-    dashboardState: 'warning',
+    phase: 'silent-failure',
+    title: 'What You Didn\'t See',
+    contextLabel: 'This is what happened inside your firm that you couldn\'t see',
+    narration: '',
+    innerThought: 'I should know this. She\'ll think I\'m not qualified if I ask. I\'ll just figure it out myself.',
     bgImage: '/demo-images/03-maria-struggling.jpg',
-    caseStatus: 'Maria has been on this step for 2 days. No questions asked.',
-    interactive: true,
-    interactivePrompt: 'What did she do?',
-  },
-
-  // Phase 4: ESCALATION - the wrong decision
-  {
-    time: 0,
-    phase: 'escalation',
-    title: 'Wednesday - Maria Guesses',
-    narration: 'Maria couldn\'t find the answer online. She didn\'t want to look incompetent. So she made her best guess and filed the I-130 by itself. She should have also filed the I-485.',
-    innerThought: 'I think it\'s just the I-130. I\'ll file it and figure out the rest later. Please let this be right.',
-    bgImage: '/demo-images/04-submit-button.jpg',
-    chatMessage: 'Filed the I-130 for Gutierrez. Moving to next case.',
+    chatMessage: 'Filed the paperwork for Gutierrez. Moving to next case.',
     chatFrom: 'Maria Lopez',
     dashboardState: 'warning',
-    highlightField: 'She filed I-130 only. Should have filed I-485 concurrently.',
+    caseStatus: 'She was stuck for 2 days. She never asked a single question.',
     interactive: true,
-    interactivePrompt: 'Two weeks later',
+    interactivePrompt: 'See what happened next',
   },
 
-  // Phase 5: CRISIS - the consequence
+  // Screen 6: CONSEQUENCE
   {
     time: 0,
-    phase: 'crisis',
-    title: 'Two Weeks Later - USCIS Responds',
-    narration: 'USCIS sent a Request for Evidence. The Gutierrez family\'s petition is delayed by 6 months. The client is upset. This is the first time you\'re hearing about any of this.',
-    innerThought: 'I knew I should have asked. But I didn\'t know what I didn\'t know. I can\'t keep doing this.',
-    dashboardState: 'crisis',
+    phase: 'consequence',
+    title: 'The Cascade',
+    contextLabel: 'This is the result of that invisible failure',
+    narration: 'The answer is: nothing. There is just no system.',
     bgImage: '/demo-images/05-rfe-letter.jpg',
-    chatMessage: 'Client called. Wants to know why USCIS is asking for more documents.',
-    chatFrom: 'Front Desk',
-    interactive: true,
-    interactivePrompt: 'That night',
-  },
-
-  // Phase: ATTUM'S LATE NIGHT - the owner's reality
-  {
-    time: 0,
-    phase: 'late-night',
-    title: 'Three Weeks Later - 11:47 PM',
-    narration: 'Three weeks later. You\'re alone, redoing the work. Covering 15 cases. Wondering why this keeps happening.',
     dashboardState: 'crisis',
-    bgImage: '/demo-images/06-attum-late-night.jpg',
-    innerThought: undefined,
     interactive: true,
-    interactivePrompt: 'Here\'s what you didn\'t see',
+    interactivePrompt: 'See what you missed',
   },
 
-  // Phase: RECOGNITION - the gap revealed
+  // Screen 7: THE COMPARISON
   {
     time: 0,
-    phase: 'recognition',
+    phase: 'comparison',
     title: 'The Invisible Gap',
-    narration: 'Maria\'s experience and yours were completely different. Neither of you knew.',
+    contextLabel: 'These two lists show the same time period from two perspectives',
+    narration: 'You could have answered her question in 30 seconds. She never got those 30 seconds.',
     dashboardState: 'crisis',
     bgImage: '/demo-images/07-the-gap.jpg',
     interactive: true,
-    interactivePrompt: 'There is a solution',
+    interactivePrompt: 'See why this keeps happening',
   },
 
-  // Phase: BEFORE/AFTER - the comparison
+  // Screen 8: THE KEY INSIGHT (standalone - one idea only)
   {
     time: 0,
-    phase: 'before-after',
-    title: 'What If There Was a System?',
-    narration: 'Same situation. Same people. Different outcome.',
-    showBefore: true,
-    showAfter: true,
+    phase: 'the-insight',
+    title: '',
+    contextLabel: 'This is why it keeps happening',
+    narration: '',
+    dashboardState: 'crisis',
     interactive: true,
-    interactivePrompt: 'See it work',
-    dashboardState: 'warning',
+    interactivePrompt: 'See the solution',
   },
 
-  // Phase: RESOLUTION - the fix in action
+  // ═══════════════════════════════════════════════════════════════
+  // ACT 3: THE SOLUTION (3 screens)
+  // ═══════════════════════════════════════════════════════════════
+
+  // Screen 9: WHAT CHANGES
   {
     time: 0,
-    phase: 'resolution',
-    title: 'Tuesday Again - This Time with Case Keeper',
-    narration: 'Maria hits the same step. But now the system explains WHY this step matters and gives her a button to ask you directly. You get a suggested response. You tap send. 30 seconds.',
-    innerThought: 'I don\'t understand this step. But I can see WHY it matters and there\'s a button to ask. Let me just ask.',
+    phase: 'what-changes',
+    title: 'Same Week. Same People. One Difference.',
+    contextLabel: 'This is what changes when there is a system',
+    narration: 'Maria asked. You answered in 30 seconds. Case filed correctly. Client happy.',
+    innerThought: 'I don\'t understand this step. But I can see why it matters, and there\'s a button to ask. Let me just ask.',
     bgImage: '/demo-images/08-the-bridge.jpg',
-    chatMessage: 'Quick question on concurrent filing - does asylum status qualify?',
+    chatMessage: 'Quick question on this step — does asylum status apply here?',
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
-    showWorkflow: true,
     interactive: true,
-    interactivePrompt: 'See the result',
+    interactivePrompt: 'See the results',
   },
 
-  // Phase: PAYOFF - the numbers
+  // Screen 10: THE RESULT
   {
     time: 0,
-    phase: 'payoff',
-    title: '6 Months Later - The Numbers',
-    narration: 'Zero rejected filings. Both associates still here. Your expertise captured in the system. No training sessions needed.',
-    showDigest: true,
-    showTraining: true,
+    phase: 'the-result',
+    title: '6 Months Later',
+    contextLabel: 'These are the results after six months with a system',
+    narration: 'They left because there was no system. Now there is.',
     dashboardState: 'resolved',
     interactive: true,
-    interactivePrompt: 'One more thing',
+    interactivePrompt: 'See your savings',
   },
 
-  // Phase: MARIA RETURNS - the emotional payoff
-  {
-    time: 0,
-    phase: 'maria-returns',
-    title: '',
-    narration: '',
-    dashboardState: 'resolved',
-    interactive: true,
-    interactivePrompt: "Don't lose another one",
-  },
-
-  // Phase: CLOSE
+  // Screen 11: CLOSE
   {
     time: 0,
     phase: 'close',
     title: '',
+    contextLabel: 'This is how much your firm could save',
     narration: 'Your expertise. In the system. For everyone.',
     dashboardState: 'resolved',
     interactive: false,
   },
 ];
 
-// Helper: total demo duration in seconds (excluding interactive pauses)
 export function getTotalAutoDuration(): number {
   return DEMO_TIMELINE.reduce((sum, e) => sum + e.time, 0);
 }
 
-// Helper: get phase index by phase name
 export function getPhaseIndex(phase: string): number {
   return DEMO_TIMELINE.findIndex((e) => e.phase === phase);
 }
