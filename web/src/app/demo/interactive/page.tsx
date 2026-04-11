@@ -224,11 +224,12 @@ export default function InteractiveDemoPage() {
     <div style={styles.wrapper}>
       {/* Hide parent layout header and demo banner for immersive experience */}
       <style>{`
-        body > header, body > main > div > div:first-child,
-        header.fixed, [class*="DEMO MODE"] {
+        header,
+        div[style*="background:#2c3e50"],
+        div[style*="background: rgb(44, 62, 80)"] {
           display: none !important;
         }
-        body > main {
+        main {
           padding-top: 0 !important;
         }
       `}</style>
