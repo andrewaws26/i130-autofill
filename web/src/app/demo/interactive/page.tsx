@@ -220,6 +220,23 @@ export default function InteractiveDemoPage() {
 
   return (
     <div style={styles.wrapper}>
+      {/* Background illustration */}
+      {currentPhase?.bgImage && (
+        <div
+          key={currentPhase.bgImage}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 0,
+            backgroundImage: `url(${currentPhase.bgImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: fadeIn ? 0.15 : 0,
+            transition: 'opacity 0.8s ease',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       {/* Progress bar */}
       <div style={styles.progressTrack}>
         <div

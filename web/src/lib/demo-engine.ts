@@ -22,6 +22,7 @@ export interface DemoEvent {
   highlightField?: string;
   textThread?: { from: string; messages: string[]; }; // iMessage-style thread
   recruitCost?: boolean; // Show the recruitment cost splash
+  bgImage?: string; // Background illustration path
 }
 
 export const DEMO_TIMELINE: DemoEvent[] = [
@@ -34,6 +35,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     interactive: true,
     interactivePrompt: 'See what went wrong',
     dashboardState: 'normal',
+    bgImage: '/demo-images/01-hook-phone.jpg',
     textThread: {
       from: 'Maria Lopez',
       messages: [
@@ -55,6 +57,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     recruitCost: true,
     interactive: true,
     interactivePrompt: 'Rewind to last Monday',
+    bgImage: '/demo-images/02-empty-desks.jpg',
   },
 
   // Phase 2: CALM
@@ -78,6 +81,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     narration: 'Maria opened the Gutierrez case. Step 4: Determine Concurrent Filing.',
     innerThought: 'What does concurrent filing mean? I should know this. She\'ll think I\'m not qualified if I ask.',
     dashboardState: 'warning',
+    bgImage: '/demo-images/03-maria-struggling.jpg',
     caseStatus: 'Maria has been on this step for 2 days. No questions asked.',
     interactive: true,
     interactivePrompt: 'What happened next',
@@ -90,6 +94,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: 'Wednesday',
     narration: 'She couldn\'t find the answer. She made her best guess.',
     innerThought: 'I think it\'s just the I-130. I\'ll file it and figure out the rest later. Please let this be right.',
+    bgImage: '/demo-images/04-submit-button.jpg',
     chatMessage: 'Filed the I-130 for Gutierrez. Moving to next case.',
     chatFrom: 'Maria Lopez',
     dashboardState: 'warning',
@@ -106,6 +111,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     narration: 'USCIS rejected the approach. The client is calling. You\'re finding out for the first time.',
     innerThought: 'I knew I should have asked. But I didn\'t know what I didn\'t know. I can\'t keep doing this.',
     dashboardState: 'crisis',
+    bgImage: '/demo-images/05-rfe-letter.jpg',
     chatMessage: 'Client called. Wants to know why USCIS is asking for more documents.',
     chatFrom: 'Front Desk',
     interactive: true,
@@ -119,6 +125,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: '11:47 PM',
     narration: '',
     dashboardState: 'crisis',
+    bgImage: '/demo-images/06-attum-late-night.jpg',
     innerThought: undefined,
     interactive: true,
     interactivePrompt: 'Next',
@@ -131,6 +138,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: '',
     narration: '',
     dashboardState: 'crisis',
+    bgImage: '/demo-images/07-the-gap.jpg',
     interactive: true,
     interactivePrompt: 'See how Case Keeper prevents this',
   },
@@ -155,6 +163,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: 'Tuesday, with Case Keeper',
     narration: 'Same Tuesday. Same confusing step. But this time, Maria isn\'t alone.',
     innerThought: 'I don\'t understand this step. But I can see WHY it matters and there\'s a button to ask. Let me just ask.',
+    bgImage: '/demo-images/08-the-bridge.jpg',
     chatMessage: 'Quick question on concurrent filing - does asylum status qualify?',
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
@@ -183,6 +192,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: '',
     narration: '',
     dashboardState: 'resolved',
+    bgImage: '/demo-images/09-maria-returns-phone.jpg',
     chatMessage: "Hey - I heard about the new system. James and I have been talking... would you consider bringing us back?",
     chatFrom: 'Maria Lopez',
     interactive: true,
