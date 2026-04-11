@@ -508,6 +508,13 @@ export default function UploadPage() {
         Documents are processed securely via Anthropic API (zero data retention). No data is stored on any server.
       </p>
 
+      {/* Demo link */}
+      <p className="text-center mt-3">
+        <a href="/demo" className="text-xs underline" style={{ color: 'var(--muted-light)' }}>
+          Try a demo with sample data
+        </a>
+      </p>
+
       {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
