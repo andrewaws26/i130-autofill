@@ -204,6 +204,7 @@ export async function POST(request: Request) {
     selectDropdown(form, 'Pt2Line41_State[0]', p?.employer_state || '');
     setText(form, 'Pt2Line41_ZipCode[0]', p?.employer_zip || '');
     setText(form, 'Pt2Line41_Country[0]', p?.employer_country || '');
+    setText(form, 'Pt2Line42_Occupation[0]', p?.occupation || '');
     setText(form, 'Pt2Line43a_DateFrom[0]', p?.employment_date_from || '');
 
     // Biographic - Height
@@ -304,6 +305,8 @@ export async function POST(request: Request) {
     setText(form, 'Pt4Line12a_StreetNumberName[0]', 'SAME');
 
     setText(form, 'Pt4Line14_DaytimePhoneNumber[0]', b?.phone || '');
+    setText(form, 'Pt4Line15_MobilePhoneNumber[0]', b?.mobile_phone || '');
+    setText(form, 'Pt4Line16_EmailAddress[0]', b?.email || '');
 
     // Petition filed before
     if (b?.petition_filed_before === 'Yes') {
@@ -387,6 +390,27 @@ export async function POST(request: Request) {
     } else if (procType.includes('judicial') || procType.includes('other')) {
       checkBox(form, 'Pt4Line54_JudicialProceedings[0]');
     }
+
+    // Proceedings location and date
+    setText(form, 'Pt4Line55a_CityOrTown[0]', b?.proceedings_city || '');
+    selectDropdown(form, 'Pt4Line55b_State[0]', b?.proceedings_state || '');
+    setText(form, 'Pt4Line56_Date[0]', b?.proceedings_date || '');
+
+    // Beneficiary passport / travel document
+    setText(form, 'Pt4Line22_PassportNumber[0]', b?.passport_number || '');
+    setText(form, 'Pt4Line23_TravelDocNumber[0]', b?.travel_doc_number || '');
+    setText(form, 'Pt4Line24_CountryOfIssuance[0]', b?.passport_country || '');
+    setText(form, 'Pt4Line25_ExpDate[0]', b?.passport_expiration || '');
+    setText(form, 'Pt4Line21d_DateExpired[0]', b?.authorized_stay_expiration || '');
+
+    // I-94 number
+    // The I-94 field is a multi-box field, try setting it as text
+    setText(form, 'Pt4Line21b_ArrivalDeparture[0]', b?.i94_number || '');
+
+    // Petitioner contact info
+    setText(form, 'Pt6Line3_DaytimePhoneNumber[0]', p?.phone || '');
+    setText(form, 'Pt6Line4_MobileNumber[0]', p?.phone || '');
+    setText(form, 'Pt6Line5_Email[0]', p?.email || '');
 
     // ===== PAGE 8 - Last address together =====
 
