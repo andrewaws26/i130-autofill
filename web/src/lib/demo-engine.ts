@@ -35,28 +35,32 @@ export const DEMO_TIMELINE: DemoEvent[] = [
 
   // Phase 2: CALM
   {
-    time: 8,
+    time: 0,
     phase: 'calm',
     title: 'Last Monday',
     narration: 'Everything looked fine. Cases were assigned. Work was getting done.',
     chatMessage: 'Good morning! Starting on the Gutierrez asylum case today.',
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
+    interactive: true,
+    interactivePrompt: 'Next',
   },
 
-  // Phase 3: FIRST SIGN - linger so they read the "No progress" detail
+  // Phase 3: FIRST SIGN
   {
-    time: 8,
+    time: 0,
     phase: 'first-sign',
     title: 'Tuesday',
     narration: "Maria hit something she didn't understand. She didn't ask.",
     dashboardState: 'warning',
     caseStatus: 'Maria has been on Step 4 for 2 days',
+    interactive: true,
+    interactivePrompt: 'What happened next',
   },
 
-  // Phase 4: ESCALATION - let the red highlight sink in
+  // Phase 4: ESCALATION
   {
-    time: 8,
+    time: 0,
     phase: 'escalation',
     title: 'Wednesday',
     narration: 'She guessed. She got it wrong. Nobody noticed.',
@@ -64,28 +68,21 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     chatFrom: 'Maria Lopez',
     dashboardState: 'warning',
     highlightField: 'She filed I-130 only. Should have filed I-485 concurrently.',
+    interactive: true,
+    interactivePrompt: 'Next',
   },
 
-  // Phase 5: CRISIS - gut punch, let it sit
+  // Phase 5: CRISIS
   {
-    time: 7,
+    time: 0,
     phase: 'crisis',
     title: 'Two Weeks Later',
     narration: 'USCIS sent a Request for Evidence. The client is upset. You find out now.',
     dashboardState: 'crisis',
     chatMessage: 'Client called. Wants to know why USCIS is asking for more documents.',
     chatFrom: 'Front Desk',
-  },
-
-  // Phase 6: INTERACTIVE PAUSE
-  {
-    time: 0,
-    phase: 'pause-problem',
-    title: '',
-    narration: "This happens because expertise is trapped in one person's head.",
     interactive: true,
     interactivePrompt: 'See how Case Keeper prevents this',
-    dashboardState: 'crisis',
   },
 
   // Phase 7: BEFORE/AFTER - interactive so they can study both paths
@@ -103,7 +100,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
 
   // Phase 8: RESOLUTION
   {
-    time: 10,
+    time: 0,
     phase: 'resolution',
     title: 'Tuesday, with Case Keeper',
     narration: 'Maria hits the same confusing step. This time, the system is there.',
@@ -111,37 +108,31 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
     showWorkflow: true,
+    interactive: true,
+    interactivePrompt: 'See the result',
   },
 
-  // Phase 9: INTERACTIVE PAUSE
+  // Phase 9: PAYOFF
   {
     time: 0,
-    phase: 'pause-solution',
-    title: '',
-    narration: 'Attorney Attum answers in 30 seconds. That answer is saved forever.',
-    interactive: true,
-    interactivePrompt: 'See the full picture',
-    dashboardState: 'normal',
-  },
-
-  // Phase 10: PAYOFF - the money shot, give it room to breathe
-  {
-    time: 14,
     phase: 'payoff',
     title: 'The Result',
     narration: 'Everything documented. Team guided. No manual training needed.',
     showDigest: true,
     showTraining: true,
     dashboardState: 'resolved',
+    interactive: true,
+    interactivePrompt: 'Finish',
   },
 
-  // Phase 11: CLOSE
+  // Phase 10: CLOSE
   {
-    time: 8,
+    time: 0,
     phase: 'close',
     title: '',
     narration: 'Your expertise. In the system. For everyone.',
     dashboardState: 'resolved',
+    interactive: false,
   },
 ];
 
