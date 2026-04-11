@@ -26,14 +26,25 @@ export interface DemoEvent {
 }
 
 export const DEMO_TIMELINE: DemoEvent[] = [
-  // Phase 1: HOOK
+  // Phase 0: SETUP - establish who you are before anything happens
+  {
+    time: 0,
+    phase: 'setup',
+    title: 'This Is Your Law Firm',
+    narration: '',
+    interactive: true,
+    interactivePrompt: 'What happened next',
+    dashboardState: 'normal',
+  },
+
+  // Phase 1: HOOK - now the texts have context
   {
     time: 0,
     phase: 'hook',
-    title: '',
+    title: 'Tuesday Morning',
     narration: '',
     interactive: true,
-    interactivePrompt: 'See what went wrong',
+    interactivePrompt: 'What does this cost?',
     dashboardState: 'normal',
     textThread: {
       from: 'Maria Lopez',

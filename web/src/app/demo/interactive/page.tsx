@@ -301,11 +301,12 @@ export default function InteractiveDemoPage() {
           width: '100%',
           position: 'relative',
         }}>
-          {phaseIndex <= 1 ? 'THE PROBLEM' :
-           phaseIndex <= 6 ? 'WHAT HAPPENED' :
-           phaseIndex <= 7 ? 'THE GAP' :
-           phaseIndex <= 8 ? 'THE COMPARISON' :
-           phaseIndex <= 10 ? 'THE SOLUTION' :
+          {phaseIndex === 0 ? 'YOUR FIRM' :
+           phaseIndex <= 2 ? 'THE PROBLEM' :
+           phaseIndex <= 7 ? 'WHAT HAPPENED' :
+           phaseIndex <= 8 ? 'THE GAP' :
+           phaseIndex <= 9 ? 'THE COMPARISON' :
+           phaseIndex <= 11 ? 'THE SOLUTION' :
            'THE RESULT'}
           <span style={{ position: 'absolute', right: 16, top: 8, fontWeight: 400 }}>
             {phaseIndex + 1} of {totalPhases}
@@ -452,6 +453,108 @@ function renderContent(
   if (!phase) return null;
 
   // Text thread (resignation messages) - hook phase
+  // Setup - establish the world before anything happens
+  if (phase.phase === 'setup') {
+    return (
+      <div style={{
+        width: '100%',
+        maxWidth: 600,
+        margin: '0 auto',
+        textAlign: 'center' as const,
+      }}>
+        <div style={{
+          fontSize: '0.75rem',
+          color: '#6b7280',
+          textTransform: 'uppercase' as const,
+          letterSpacing: '0.08em',
+          marginBottom: 16,
+          animation: 'fadeInUp 0.4s ease-out both',
+        }}>
+          Before we begin
+        </div>
+
+        <div style={{
+          fontSize: 'clamp(1.5rem, 3vw, 2rem)',
+          fontWeight: 600,
+          color: '#ffffff',
+          fontFamily: '"Source Serif 4", serif',
+          marginBottom: 24,
+          lineHeight: 1.4,
+          animation: 'fadeInUp 0.5s ease-out 0.2s both',
+        }}>
+          Imagine you own a small law firm.
+        </div>
+
+        <div style={{
+          backgroundColor: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 12,
+          padding: '28px 24px',
+          textAlign: 'left' as const,
+          animation: 'fadeInUp 0.5s ease-out 0.4s both',
+        }}>
+          <div style={{
+            fontSize: '1rem',
+            color: '#e2e8f0',
+            lineHeight: 1.8,
+          }}>
+            <div style={{ marginBottom: 16 }}>
+              You handle immigration, family law, and criminal defense in Owensboro, Kentucky.
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              You have <span style={{ color: '#b8860b', fontWeight: 600 }}>two associate attorneys</span>:
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: 16,
+              marginBottom: 20,
+              flexWrap: 'wrap' as const,
+            }}>
+              <div style={{
+                flex: 1,
+                minWidth: 200,
+                padding: '14px 16px',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                borderRadius: 8,
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}>
+                <div style={{ fontWeight: 600, color: '#ffffff', marginBottom: 4 }}>Maria Lopez</div>
+                <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>Associate Attorney</div>
+                <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>8 months at the firm</div>
+              </div>
+              <div style={{
+                flex: 1,
+                minWidth: 200,
+                padding: '14px 16px',
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                borderRadius: 8,
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}>
+                <div style={{ fontWeight: 600, color: '#ffffff', marginBottom: 4 }}>James Chen</div>
+                <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>Associate Attorney</div>
+                <div style={{ fontSize: '0.8125rem', color: '#9ca3af' }}>14 months at the firm</div>
+              </div>
+            </div>
+            <div style={{ color: '#9ca3af' }}>
+              They handle cases while you manage the firm. You trained them yourself. Things seem to be going well.
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          marginTop: 20,
+          fontSize: '0.875rem',
+          color: '#6b7280',
+          fontStyle: 'italic',
+          animation: 'fadeInUp 0.5s ease-out 0.8s both',
+        }}>
+          Then one Tuesday morning, your phone buzzes.
+        </div>
+      </div>
+    );
+  }
+
+  // Text thread - the resignation
   if (phase.textThread) {
     return (
       <div style={{
