@@ -180,7 +180,7 @@ export default function InteractiveDemoPage() {
       </div>
 
       {/* Main content container */}
-      <div style={styles.container}>
+      <div className="demo-container" style={styles.container}>
         {/* Phase title */}
         {currentPhase?.title && (
           <div
@@ -229,7 +229,7 @@ export default function InteractiveDemoPage() {
 
         {/* Chat bubbles */}
         {visibleChats.length > 0 && (
-          <div style={styles.chatStack}>
+          <div className="demo-chat-stack" style={styles.chatStack}>
             {visibleChats.map((chat, i) => {
               const isLatest = i === visibleChats.length - 1;
               const isFading = i < visibleChats.length - 3;
@@ -259,6 +259,7 @@ export default function InteractiveDemoPage() {
       {/* Narration bar */}
       {currentPhase?.narration && (
         <div
+          className="demo-narration-bar"
           style={{
             ...styles.narrationBar,
             opacity: fadeIn ? 1 : 0,
@@ -312,7 +313,7 @@ function renderContent(
   // Calm dashboard
   if (phase.phase === 'calm') {
     return (
-      <div style={styles.cardGrid}>
+      <div className="demo-card-grid" style={styles.cardGrid}>
         <DashCard title="Active Cases" value="8" sub="3 immigration, 3 family, 2 criminal" />
         <DashCard title="Team Status" value="All on track" sub="Maria, James, Sarah assigned" />
         <DashCard title="Upcoming" value="2 deadlines" sub="This week" />
@@ -407,7 +408,7 @@ function renderContent(
   // Before/After
   if (phase.phase === 'before-after') {
     return (
-      <div style={styles.beforeAfterContainer}>
+      <div className="demo-before-after" style={styles.beforeAfterContainer}>
         {/* Before path */}
         <div
           style={{
@@ -506,7 +507,7 @@ function renderContent(
     return (
       <div>
         {/* Stats grid */}
-        <div style={styles.statsGrid}>
+        <div className="demo-stats-grid" style={styles.statsGrid}>
           {PAYOFF_STATS.map((stat, i) => (
             <div key={i} style={styles.statCard}>
               <div style={{ ...styles.statValue, color: stat.color }}>{stat.value}</div>
@@ -596,6 +597,21 @@ const keyframes = `
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* Responsive: mobile gets 2-col grids, desktop gets 4 */
+  @media (max-width: 640px) {
+    .demo-card-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .demo-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .demo-before-after { flex-direction: column !important; }
+    .demo-chat-stack { right: 12px !important; max-width: 260px !important; bottom: 110px !important; }
+    .demo-container { padding: 36px 16px 160px !important; }
+    .demo-narration-bar { padding: 16px 16px !important; }
+  }
+
+  @media (min-width: 1200px) {
+    .demo-container { max-width: 1000px !important; }
+    .demo-chat-stack { right: 48px !important; max-width: 380px !important; }
+  }
 `;
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
@@ -627,19 +643,19 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Container
   container: {
-    maxWidth: 640,
+    maxWidth: 900,
     margin: '0 auto',
-    padding: '48px 20px 180px',
+    padding: '48px 24px 180px',
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    gap: 24,
+    gap: 28,
   },
 
   // Phase title
   phaseTitle: {
     fontFamily: '"Source Serif 4", ui-serif, Georgia, serif',
-    fontSize: '1.75rem',
+    fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
     fontWeight: 600,
     color: '#ffffff',
     textAlign: 'center' as const,
@@ -676,14 +692,14 @@ const styles: Record<string, React.CSSProperties> = {
   // Cards
   cardGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 12,
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: 14,
   },
   dashCard: {
     backgroundColor: '#ffffff',
     border: '1px solid #d8d8d8',
-    borderRadius: 6,
-    padding: '16px 18px',
+    borderRadius: 8,
+    padding: '20px 22px',
     animation: 'fadeInUp 0.5s ease-out both',
   },
   dashCardTitle: {
@@ -695,7 +711,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 4,
   },
   dashCardValue: {
-    fontSize: '1.25rem',
+    fontSize: 'clamp(1.25rem, 2vw, 1.75rem)',
     fontWeight: 700,
     color: '#2c3e50',
     fontFamily: '"Source Serif 4", ui-serif, Georgia, serif',
@@ -765,20 +781,20 @@ const styles: Record<string, React.CSSProperties> = {
   // Before/After
   beforeAfterContainer: {
     display: 'flex',
-    gap: 12,
+    gap: 20,
     width: '100%',
   },
   pathCard: {
     flex: 1,
     backgroundColor: '#ffffff',
-    borderRadius: 6,
+    borderRadius: 8,
     border: '2px solid #d8d8d8',
-    padding: '16px 14px',
+    padding: '24px 20px',
     transition: 'border-color 0.5s ease, opacity 0.5s ease',
     minWidth: 0,
   },
   pathHeader: {
-    fontSize: '0.8125rem',
+    fontSize: '0.9375rem',
     fontWeight: 700,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.04em',
@@ -861,19 +877,19 @@ const styles: Record<string, React.CSSProperties> = {
   // Payoff stats
   statsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 12,
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: 14,
   },
   statCard: {
     backgroundColor: '#ffffff',
     border: '1px solid #d8d8d8',
-    borderRadius: 6,
-    padding: '18px 16px',
+    borderRadius: 8,
+    padding: '24px 20px',
     textAlign: 'center' as const,
     animation: 'fadeInUp 0.5s ease-out both',
   },
   statValue: {
-    fontSize: '1.75rem',
+    fontSize: 'clamp(1.75rem, 3vw, 2.25rem)',
     fontWeight: 700,
     fontFamily: '"Source Serif 4", ui-serif, Georgia, serif',
   },
@@ -908,11 +924,11 @@ const styles: Record<string, React.CSSProperties> = {
   chatStack: {
     position: 'fixed' as const,
     bottom: 120,
-    right: 16,
+    right: 32,
     display: 'flex',
     flexDirection: 'column' as const,
     gap: 8,
-    maxWidth: 280,
+    maxWidth: 340,
     zIndex: 30,
   },
   chatBubble: {
@@ -968,26 +984,26 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'opacity 0.4s ease',
   },
   narrationText: {
-    maxWidth: 560,
+    maxWidth: 700,
     margin: '0 auto',
-    fontSize: '1.0625rem',
+    fontSize: 'clamp(1.0625rem, 1.5vw, 1.25rem)',
     fontWeight: 400,
     color: '#e2e8f0',
     textAlign: 'center' as const,
     lineHeight: 1.5,
   },
   caseStatusText: {
-    maxWidth: 560,
+    maxWidth: 700,
     margin: '6px auto 0',
-    fontSize: '0.8125rem',
+    fontSize: '0.875rem',
     fontWeight: 500,
     color: '#92400e',
     textAlign: 'center' as const,
   },
   highlightText: {
-    maxWidth: 560,
+    maxWidth: 700,
     margin: '6px auto 0',
-    fontSize: '0.8125rem',
+    fontSize: '0.875rem',
     fontWeight: 500,
     color: '#9b2c2c',
     textAlign: 'center' as const,
@@ -1005,8 +1021,8 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   ctaButton: {
-    padding: '16px 40px',
-    fontSize: '1.125rem',
+    padding: '18px 48px',
+    fontSize: 'clamp(1.125rem, 1.5vw, 1.375rem)',
     fontWeight: 600,
     fontFamily: '"DM Sans", ui-sans-serif, system-ui, sans-serif',
     color: '#ffffff',
@@ -1023,9 +1039,9 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 420,
     margin: '0 auto',
   },
   ctaPrimary: {
