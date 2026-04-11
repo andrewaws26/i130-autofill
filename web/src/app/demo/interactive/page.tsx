@@ -469,9 +469,33 @@ function renderContent(
     return (
       <div style={{
         width: '100%',
-        maxWidth: 420,
+        maxWidth: 480,
         margin: '0 auto',
       }}>
+        {/* Context - what you're about to see */}
+        <div style={{
+          textAlign: 'center' as const,
+          marginBottom: 20,
+          animation: 'fadeInUp 0.5s ease-out both',
+        }}>
+          <div style={{
+            fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)',
+            fontWeight: 600,
+            color: '#ffffff',
+            fontFamily: '"Source Serif 4", serif',
+            marginBottom: 8,
+          }}>
+            Tuesday morning. Your phone buzzes.
+          </div>
+          <div style={{
+            fontSize: '0.9375rem',
+            color: '#9ca3af',
+            lineHeight: 1.5,
+          }}>
+            Your associate attorney is texting you.
+          </div>
+        </div>
+
         {/* Phone frame */}
         <div style={{
           backgroundColor: '#1c1c1e',
