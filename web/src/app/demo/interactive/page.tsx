@@ -102,37 +102,31 @@ export default function InteractiveDemoPage() {
 
     setFadeIn(false);
     setTimeout(() => {
-      setPhaseIndex((prev) => {
-        const next = prev + 1;
-        const nextPhase = DEMO_TIMELINE[next];
-        if (nextPhase?.interactive) {
-          setWaitingForTap(true);
-        }
-        return next;
-      });
+      const next = phaseIndex + 1;
+      const nextPhase = DEMO_TIMELINE[next];
+      setPhaseIndex(next);
       setFadeIn(true);
+      if (nextPhase?.interactive) {
+        setTimeout(() => setWaitingForTap(true), 50);
+      }
     }, 400);
   }, [phaseIndex, totalPhases]);
 
   // ── Auto-advance timer ───────────────────────────────────────────────────
   useEffect(() => {
-    if (waitingForTap) return;
-    if (currentPhase?.interactive && phaseIndex === 0) {
+    // If current phase is interactive, wait for tap
+    if (currentPhase?.interactive) {
       setWaitingForTap(true);
       return;
     }
+    if (waitingForTap) return;
     if (phaseIndex >= totalPhases - 1) return;
 
     const nextPhase = DEMO_TIMELINE[phaseIndex + 1];
     if (!nextPhase) return;
 
     const delay = nextPhase.time * 1000;
-    if (delay <= 0) {
-      // Next phase is interactive, advance immediately then pause
-      timerRef.current = setTimeout(() => advancePhase(), 600);
-    } else {
-      timerRef.current = setTimeout(() => advancePhase(), delay);
-    }
+    timerRef.current = setTimeout(() => advancePhase(), Math.max(delay, 600));
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -143,7 +137,8 @@ export default function InteractiveDemoPage() {
   const handleTap = () => {
     if (!waitingForTap) return;
     setWaitingForTap(false);
-    advancePhase();
+    // advancePhase will be triggered by the useEffect when waitingForTap becomes false
+    setTimeout(() => advancePhase(), 50);
   };
 
   // ── Restart ──────────────────────────────────────────────────────────────
@@ -278,7 +273,7 @@ export default function InteractiveDemoPage() {
       )}
 
       {/* Interactive overlay */}
-      {waitingForTap && (
+      {waitingForTap && currentPhase?.interactive && (
         <div style={styles.overlay} onClick={handleTap}>
           <button
             onClick={handleTap}
