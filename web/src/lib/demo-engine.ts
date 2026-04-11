@@ -140,7 +140,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     time: 8,
     phase: 'close',
     title: '',
-    narration: 'Your expertise. In the system. On demand.',
+    narration: 'Your expertise. In the system. For everyone.',
     dashboardState: 'resolved',
   },
 ];
