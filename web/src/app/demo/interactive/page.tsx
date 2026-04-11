@@ -456,68 +456,125 @@ function renderContent(
     return (
       <div style={{
         width: '100%',
-        maxWidth: 400,
+        maxWidth: 420,
         margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column' as const,
-        gap: 8,
       }}>
+        {/* Phone frame */}
         <div style={{
-          textAlign: 'center' as const,
-          fontSize: '0.8125rem',
-          color: '#9ca3af',
-          marginBottom: 8,
+          backgroundColor: '#1c1c1e',
+          borderRadius: 24,
+          border: '2px solid #3a3a3c',
+          overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
         }}>
-          {phase.textThread.from}
-        </div>
-        {/* Typing indicator - appears before first message */}
-        <div style={{
-          alignSelf: 'flex-start',
-          padding: '10px 16px',
-          borderRadius: '18px 18px 18px 4px',
-          backgroundColor: '#e5e7eb',
-          animation: `fadeInUp 0.3s ease-out 0.3s both, typingFadeOut 0.3s ease-out 0.7s forwards`,
-          display: 'flex',
-          gap: 4,
-          alignItems: 'center',
-        }}>
-          {[0, 1, 2].map(i => (
-            <div key={i} style={{
-              width: 7,
-              height: 7,
+          {/* Phone status bar */}
+          <div style={{
+            padding: '10px 20px 6px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.75rem',
+            color: '#8e8e93',
+          }}>
+            <span>9:41 AM</span>
+            <span>Tuesday</span>
+          </div>
+
+          {/* Contact header */}
+          <div style={{
+            padding: '8px 20px 14px',
+            borderBottom: '1px solid #2c2c2e',
+            textAlign: 'center' as const,
+          }}>
+            {/* Avatar */}
+            <div style={{
+              width: 44,
+              height: 44,
               borderRadius: '50%',
-              backgroundColor: '#9ca3af',
-              animation: `typingDot 1.2s ease-in-out ${i * 0.2}s infinite`,
-            }} />
-          ))}
-        </div>
-        {phase.textThread.messages.map((msg, i) => (
-          <div
-            key={i}
-            style={{
+              backgroundColor: '#b8860b',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem',
+              fontWeight: 700,
+              margin: '0 auto 6px',
+            }}>
+              ML
+            </div>
+            <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#ffffff' }}>
+              {phase.textThread.from}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#8e8e93', marginTop: 2 }}>
+              Associate Attorney
+            </div>
+          </div>
+
+          {/* Messages area */}
+          <div style={{
+            padding: '16px 16px 20px',
+            display: 'flex',
+            flexDirection: 'column' as const,
+            gap: 8,
+            minHeight: 220,
+          }}>
+            {/* Typing indicator */}
+            <div style={{
               alignSelf: 'flex-start',
-              maxWidth: '80%',
               padding: '10px 16px',
               borderRadius: '18px 18px 18px 4px',
-              backgroundColor: '#e5e7eb',
-              color: '#1f2937',
-              fontSize: '0.9375rem',
-              lineHeight: 1.4,
-              animation: `fadeInUp 0.4s ease-out ${0.8 + i * 1.2}s both`,
-            }}
-          >
-            {msg}
+              backgroundColor: '#3a3a3c',
+              animation: `fadeInUp 0.3s ease-out 0.3s both, typingFadeOut 0.3s ease-out 0.7s forwards`,
+              display: 'flex',
+              gap: 4,
+              alignItems: 'center',
+            }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  backgroundColor: '#8e8e93',
+                  animation: `typingDot 1.2s ease-in-out ${i * 0.2}s infinite`,
+                }} />
+              ))}
+            </div>
+
+            {/* Messages */}
+            {phase.textThread.messages.map((msg, i) => (
+              <div
+                key={i}
+                style={{
+                  alignSelf: 'flex-start',
+                  maxWidth: '82%',
+                  padding: '10px 14px',
+                  borderRadius: '18px 18px 18px 4px',
+                  backgroundColor: '#3a3a3c',
+                  color: '#ffffff',
+                  fontSize: '0.9375rem',
+                  lineHeight: 1.4,
+                  animation: `fadeInUp 0.4s ease-out ${0.8 + i * 1.2}s both`,
+                }}
+              >
+                {msg}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Below the phone */}
         <div style={{
           textAlign: 'center' as const,
-          fontSize: '0.8125rem',
-          color: '#9b2c2c',
-          marginTop: 12,
-          fontWeight: 500,
+          marginTop: 20,
           animation: `fadeInUp 0.4s ease-out ${0.8 + phase.textThread.messages.length * 1.2 + 0.5}s both`,
         }}>
-          Third one this year.
+          <div style={{
+            fontSize: '1rem',
+            color: '#9b2c2c',
+            fontWeight: 500,
+          }}>
+            Third one this year.
+          </div>
         </div>
       </div>
     );
