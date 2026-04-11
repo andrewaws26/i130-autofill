@@ -44,9 +44,9 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     dashboardState: 'normal',
   },
 
-  // Phase 3: FIRST SIGN
+  // Phase 3: FIRST SIGN - linger so they read the "No progress" detail
   {
-    time: 6,
+    time: 8,
     phase: 'first-sign',
     title: 'Tuesday',
     narration: "Maria hit something she didn't understand. She didn't ask.",
@@ -54,9 +54,9 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     caseStatus: 'Maria has been on Step 4 for 2 days',
   },
 
-  // Phase 4: ESCALATION
+  // Phase 4: ESCALATION - let the red highlight sink in
   {
-    time: 6,
+    time: 8,
     phase: 'escalation',
     title: 'Wednesday',
     narration: 'She guessed. She got it wrong. Nobody noticed.',
@@ -66,9 +66,9 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     highlightField: 'She filed I-130 only. Should have filed I-485 concurrently.',
   },
 
-  // Phase 5: CRISIS
+  // Phase 5: CRISIS - gut punch, let it sit
   {
-    time: 5,
+    time: 7,
     phase: 'crisis',
     title: 'Two Weeks Later',
     narration: 'USCIS sent a Request for Evidence. The client is upset. You find out now.',
@@ -88,20 +88,22 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     dashboardState: 'crisis',
   },
 
-  // Phase 7: BEFORE/AFTER
+  // Phase 7: BEFORE/AFTER - interactive so they can study both paths
   {
-    time: 10,
+    time: 0,
     phase: 'before-after',
-    title: 'Same scenario. With Case Keeper.',
-    narration: '',
+    title: 'Same scenario. Two outcomes.',
+    narration: 'Without Case Keeper, expertise stays trapped. With it, everyone has access.',
     showBefore: true,
     showAfter: true,
+    interactive: true,
+    interactivePrompt: 'See it in action',
     dashboardState: 'warning',
   },
 
   // Phase 8: RESOLUTION
   {
-    time: 8,
+    time: 10,
     phase: 'resolution',
     title: 'Tuesday, with Case Keeper',
     narration: 'Maria hits the same confusing step. This time, the system is there.',
@@ -122,9 +124,9 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     dashboardState: 'normal',
   },
 
-  // Phase 10: PAYOFF
+  // Phase 10: PAYOFF - the money shot, give it room to breathe
   {
-    time: 10,
+    time: 14,
     phase: 'payoff',
     title: 'The Result',
     narration: 'Everything documented. Team guided. No manual training needed.',
@@ -135,7 +137,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
 
   // Phase 11: CLOSE
   {
-    time: 6,
+    time: 8,
     phase: 'close',
     title: '',
     narration: 'Your expertise. In the system. Working while you sleep.',
