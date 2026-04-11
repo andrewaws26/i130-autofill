@@ -380,6 +380,286 @@ export default function TrainingPage() {
         ))}
       </div>
 
+      {/* Bi-Weekly Check-In */}
+      <div
+        className="rounded-lg p-5 mb-8"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border-light)',
+        }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2
+            className="text-lg font-semibold"
+            style={{
+              fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
+              color: 'var(--heading)',
+            }}
+          >
+            Upcoming Check-In: Maria Lopez
+          </h2>
+          <span className="text-sm" style={{ color: 'var(--muted)' }}>
+            Thursday, April 17 at 2:00 PM
+          </span>
+        </div>
+        <div
+          className="text-xs mb-4 px-3 py-1.5 rounded-md inline-block"
+          style={{ background: '#eff6ff', color: '#1d4ed8', fontWeight: 600 }}
+        >
+          Auto-scheduled
+        </div>
+
+        <div
+          className="text-xs font-semibold uppercase tracking-wide mb-3"
+          style={{ color: 'var(--muted)' }}
+        >
+          Auto-Generated Agenda
+        </div>
+
+        {/* 1. Active Cases */}
+        <div className="mb-4">
+          <div className="text-sm font-semibold mb-2" style={{ color: 'var(--heading)' }}>
+            1. Active Cases (3)
+          </div>
+          <div className="flex flex-col gap-1 ml-4">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span><span className="font-medium">Meh/Cardona I-130:</span> Step 5 (your review)</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span><span className="font-medium">Gutierrez Asylum:</span> Step 3 (evidence gathering)</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>
+                <span className="font-medium">Mitchell Divorce:</span> Financial disclosure{' '}
+                <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ background: '#fef2f2', color: '#dc2626' }}>flagged as stuck</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Training Progress */}
+        <div className="mb-4">
+          <div className="text-sm font-semibold mb-2" style={{ color: 'var(--heading)' }}>
+            2. Training Progress
+          </div>
+          <div className="flex flex-col gap-1 ml-4">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>Completed 2 modules this week</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>Next up: &quot;Immigration Consequences of Criminal Convictions&quot; <span style={{ color: 'var(--muted)' }}>(relevant to Ramirez case she&apos;ll be working on)</span></span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Questions & Concerns */}
+        <div className="mb-4">
+          <div className="text-sm font-semibold mb-2" style={{ color: 'var(--heading)' }}>
+            3. Questions &amp; Concerns
+          </div>
+          <div className="flex flex-col gap-1 ml-4">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>Asked 5 questions this week (healthy engagement)</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>1 question was about concurrent filing (now resolved)</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>No flags or concerns detected</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 4. Recognition */}
+        <div className="mb-5">
+          <div className="text-sm font-semibold mb-2" style={{ color: 'var(--heading)' }}>
+            4. Recognition
+          </div>
+          <div className="flex flex-col gap-1 ml-4">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>First solo I-130 petition completed</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>Suggest: &quot;You&apos;re making great progress on immigration cases.&quot;</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Talking Points */}
+        <div
+          className="rounded-md p-4"
+          style={{
+            background: '#fdf8f0',
+            borderLeft: '3px solid #b8860b',
+          }}
+        >
+          <div
+            className="text-xs font-semibold uppercase tracking-wide mb-2"
+            style={{ color: '#b8860b' }}
+          >
+            Talking Points for You
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm" style={{ color: '#5c4a1e', lineHeight: 1.5 }}>
+              &bull; Ask about the Mitchell financial disclosure (she&apos;s been stuck)
+            </p>
+            <p className="text-sm" style={{ color: '#5c4a1e', lineHeight: 1.5 }}>
+              &bull; The Ramirez case has criminal-immigration overlap. Good learning opportunity but she&apos;ll need guidance.
+            </p>
+            <p className="text-sm" style={{ color: '#5c4a1e', lineHeight: 1.5 }}>
+              &bull; She hasn&apos;t started criminal defense training yet. Consider encouraging her given the Ramirez case.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2 mt-4">
+          <button
+            className="px-4 py-2 rounded-md text-sm font-medium"
+            style={{ background: 'var(--accent-gold)', color: '#fff', cursor: 'default' }}
+          >
+            Add Notes
+          </button>
+          <button
+            className="px-4 py-2 rounded-md text-sm font-medium"
+            style={{
+              background: 'transparent',
+              color: 'var(--heading)',
+              border: '1px solid var(--border-light)',
+              cursor: 'default',
+            }}
+          >
+            Reschedule
+          </button>
+          <button
+            className="px-4 py-2 rounded-md text-sm font-medium"
+            style={{
+              background: 'transparent',
+              color: 'var(--heading)',
+              border: '1px solid var(--border-light)',
+              cursor: 'default',
+            }}
+          >
+            View Full Profile
+          </button>
+        </div>
+      </div>
+
+      {/* Team Wellness Indicators */}
+      <div
+        className="rounded-lg p-5 mb-8"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border-light)',
+        }}
+      >
+        <h2
+          className="text-lg font-semibold mb-4"
+          style={{
+            fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
+            color: 'var(--heading)',
+          }}
+        >
+          Team Wellness Indicators
+        </h2>
+        <p className="text-xs mb-4" style={{ color: 'var(--muted)' }}>
+          Based on activity patterns, training engagement, and question frequency.
+        </p>
+
+        {/* Maria Lopez */}
+        <div
+          className="rounded-md p-4 mb-4"
+          style={{
+            background: 'var(--background)',
+            border: '1px solid var(--border-light)',
+          }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <span
+              className="flex items-center justify-center rounded-full text-xs font-bold shrink-0"
+              style={{ width: 32, height: 32, background: '#7c3aed', color: '#fff' }}
+            >
+              ML
+            </span>
+            <div>
+              <div className="text-sm font-medium" style={{ color: 'var(--heading)' }}>
+                Maria Lopez
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold" style={{ color: '#16a34a' }}>
+                  Engagement: Healthy
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="mb-3">
+            <div
+              style={{
+                width: '100%',
+                height: 8,
+                borderRadius: 4,
+                background: 'var(--border-light)',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: '73%',
+                  height: '100%',
+                  borderRadius: 4,
+                  background: '#16a34a',
+                }}
+              />
+            </div>
+            <div className="text-xs mt-1 text-right" style={{ color: 'var(--muted-light)' }}>
+              73%
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1 ml-1">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>Asking questions regularly (good sign)</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>Training on track</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--foreground)' }}>
+              <span style={{ color: 'var(--muted-light)' }}>&bull;</span>
+              <span>One case stalled (Mitchell) -- may need support</span>
+            </div>
+          </div>
+
+          <div
+            className="rounded-md p-3 mt-3"
+            style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}
+          >
+            <span className="text-xs font-semibold" style={{ color: '#166534' }}>
+              Recommendation:
+            </span>
+            <span className="text-sm ml-1" style={{ color: '#166534' }}>
+              No action needed. The Mitchell case stall is content-related, not motivational.
+            </span>
+          </div>
+        </div>
+
+        <p className="text-xs" style={{ color: 'var(--muted)', fontStyle: 'italic', lineHeight: 1.5 }}>
+          These indicators help you stay connected with your team&apos;s experience. Early awareness prevents surprises.
+        </p>
+      </div>
+
       {/* Institutional Knowledge */}
       <h2
         className="text-lg font-semibold mb-4"

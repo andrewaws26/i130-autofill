@@ -587,6 +587,41 @@ export default function WorkflowPage() {
                         </div>
                       )}
 
+                      {/* Anonymous help request - on step 4 (current) */}
+                      {step.status === 'current' && (
+                        <div
+                          style={{
+                            marginTop: 16,
+                            padding: '12px 16px',
+                            background: '#f9f9f9',
+                            borderRadius: 8,
+                            border: '1px dashed var(--border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <span style={{ fontSize: '0.8125rem', color: 'var(--muted)' }}>
+                            Finding this step confusing? Let the team know anonymously.
+                          </span>
+                          <button
+                            style={{
+                              fontSize: '0.75rem',
+                              padding: '4px 12px',
+                              borderRadius: 6,
+                              border: '1px solid var(--border)',
+                              background: 'white',
+                              color: 'var(--muted)',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap',
+                              marginLeft: 12,
+                            }}
+                          >
+                            Flag for More Guidance
+                          </button>
+                        </div>
+                      )}
+
                       {/* Review request (for review step) */}
                       {step.reviewRequest && (
                         <div className="mb-4">
@@ -646,6 +681,71 @@ export default function WorkflowPage() {
                               >
                                 Request Changes
                               </button>
+                            </div>
+                          </div>
+
+                          {/* Review Checklist (auto-generated) */}
+                          <div
+                            className="rounded-md p-4 mt-3"
+                            style={{
+                              background: '#f8faf8',
+                              border: '1px solid var(--border-light)',
+                            }}
+                          >
+                            <h4
+                              className="text-xs font-semibold uppercase tracking-wide mb-3"
+                              style={{ color: 'var(--muted)' }}
+                            >
+                              Review Checklist (auto-generated)
+                            </h4>
+                            <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>
+                              The system has verified:
+                            </p>
+                            <div className="flex flex-col gap-2">
+                              {[
+                                { checked: true, label: 'All I-130 fields are complete' },
+                                { checked: true, label: 'Names match across all documents' },
+                                { checked: true, label: 'Dates are consistent' },
+                                { checked: true, label: 'Marriage certificate translation attached' },
+                                { checked: true, label: 'Photos meet USCIS requirements (variety of dates/settings)' },
+                                { checked: false, label: 'Joint bank statement', note: 'MISSING (flagged to client)' },
+                                { checked: true, label: 'Both parties\' IDs included' },
+                              ].map((item, i) => (
+                                <div key={i} className="flex items-start gap-2">
+                                  {item.checked ? (
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                                      <rect x="1" y="1" width="14" height="14" rx="2" fill="#16a34a" />
+                                      <path d="M4 8l3 3 5-5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                  ) : (
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+                                      <rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="#dc2626" strokeWidth="1.5" />
+                                    </svg>
+                                  )}
+                                  <span className="text-sm" style={{ color: item.checked ? 'var(--foreground)' : '#dc2626' }}>
+                                    {item.label}
+                                    {item.note && (
+                                      <span className="text-xs font-semibold ml-1" style={{ color: '#dc2626' }}>
+                                        -- {item.note}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div
+                              className="rounded-md p-3 mt-3"
+                              style={{
+                                background: '#fffbeb',
+                                border: '1px solid #fde68a',
+                              }}
+                            >
+                              <span className="text-xs font-semibold" style={{ color: '#92400e' }}>
+                                Recommendation:
+                              </span>
+                              <span className="text-sm ml-1" style={{ color: '#78350f' }}>
+                                Approve with note -- remind client about bank statement before filing.
+                              </span>
                             </div>
                           </div>
                         </div>

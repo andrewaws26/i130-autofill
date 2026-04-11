@@ -304,6 +304,173 @@ export default function DemoPlatformDashboard() {
         ))}
       </div>
 
+      {/* Morning Digest */}
+      <div
+        className="rounded-lg p-6 mb-8"
+        style={{
+          background: '#fefcf6',
+          border: '1px solid #e8dcc8',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        }}
+      >
+        <div className="flex items-baseline justify-between mb-4">
+          <span
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontSize: '1.125rem',
+              color: 'var(--heading)',
+            }}
+          >
+            Good morning, Attorney Attum.
+          </span>
+          <span className="text-sm" style={{ color: 'var(--muted)' }}>
+            Today, April 11
+          </span>
+        </div>
+
+        <div className="mb-4">
+          <div
+            className="text-xs font-semibold uppercase tracking-wide mb-2"
+            style={{ color: '#92400e' }}
+          >
+            Needs Your Attention
+          </div>
+          <ul className="flex flex-col gap-1.5" style={{ listStyle: 'disc', paddingLeft: 20 }}>
+            <li className="text-sm" style={{ color: 'var(--foreground)' }}>
+              2 questions waiting for your response <span style={{ color: 'var(--muted-light)' }}>(oldest: 2 hours ago)</span>
+            </li>
+            <li className="text-sm" style={{ color: 'var(--foreground)' }}>
+              1 case ready for senior review (Meh/Cardona I-130)
+            </li>
+            <li className="text-sm" style={{ color: 'var(--foreground)' }}>
+              Mitchell divorce response to discovery due Friday
+            </li>
+          </ul>
+        </div>
+
+        <div className="mb-4">
+          <div
+            className="text-xs font-semibold uppercase tracking-wide mb-2"
+            style={{ color: '#16a34a' }}
+          >
+            Team Wins
+          </div>
+          <ul className="flex flex-col gap-1.5" style={{ listStyle: 'disc', paddingLeft: 20 }}>
+            <li className="text-sm" style={{ color: 'var(--foreground)' }}>
+              Maria completed training module: &quot;Responding to RFEs&quot; -- Score: 90%
+            </li>
+            <li className="text-sm" style={{ color: 'var(--foreground)' }}>
+              Htoo Paw I-485 medical exam received -- case moving forward
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div
+            className="text-xs font-semibold uppercase tracking-wide mb-2"
+            style={{ color: '#d97706' }}
+          >
+            Heads Up
+          </div>
+          <p className="text-sm mb-2" style={{ color: 'var(--foreground)' }}>
+            Maria&apos;s activity has been lower than usual this week.
+          </p>
+          <div
+            className="rounded-md p-3"
+            style={{ background: '#fff', border: '1px solid #e8dcc8' }}
+          >
+            <span
+              className="text-sm font-medium"
+              style={{ color: 'var(--accent-gold)', cursor: 'pointer' }}
+            >
+              Check in with Maria &rarr;
+            </span>
+            <p
+              className="text-sm mt-1.5"
+              style={{
+                color: 'var(--muted)',
+                fontStyle: 'italic',
+                lineHeight: 1.5,
+              }}
+            >
+              Suggested: &quot;Hey Maria, I noticed the Mitchell case has been on the financial disclosure step for a few days. What&apos;s blocking you?&quot;
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recognition Prompts */}
+      <div
+        className="rounded-lg p-5 mb-8"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border-light)',
+          borderLeft: '4px solid #d4a843',
+        }}
+      >
+        <div
+          className="text-xs font-semibold uppercase tracking-wide mb-2"
+          style={{ color: '#b8860b' }}
+        >
+          Recognition Opportunity
+        </div>
+        <p className="text-sm mb-3" style={{ color: 'var(--foreground)' }}>
+          Maria filed her first solo I-130 this week (Meh/Cardona case).
+        </p>
+        <span
+          className="text-sm font-medium"
+          style={{ color: 'var(--accent-gold)', cursor: 'pointer' }}
+        >
+          Send Quick Note &rarr;
+        </span>
+
+        <div
+          className="rounded-md p-3 mt-3"
+          style={{
+            background: '#fefcf6',
+            border: '1px solid #e8dcc8',
+          }}
+        >
+          <div className="text-xs mb-1.5" style={{ color: 'var(--muted)' }}>
+            Pre-drafted:
+          </div>
+          <p className="text-sm" style={{ color: 'var(--foreground)', lineHeight: 1.5 }}>
+            &quot;Nice work on the Cardona petition, Maria. The evidence package was thorough and well-organized.&quot;
+          </p>
+        </div>
+
+        <div className="flex gap-2 mt-3">
+          <button
+            className="px-4 py-2 rounded-md text-sm font-medium"
+            style={{ background: 'var(--accent-gold)', color: '#fff', cursor: 'default' }}
+          >
+            Send
+          </button>
+          <button
+            className="px-4 py-2 rounded-md text-sm font-medium"
+            style={{
+              background: 'transparent',
+              color: 'var(--heading)',
+              border: '1px solid var(--border-light)',
+              cursor: 'default',
+            }}
+          >
+            Edit First
+          </button>
+          <button
+            className="px-4 py-2 rounded-md text-sm font-medium"
+            style={{
+              background: 'transparent',
+              color: 'var(--muted)',
+              border: '1px solid var(--border-light)',
+              cursor: 'default',
+            }}
+          >
+            Skip
+          </button>
+        </div>
+      </div>
+
       {/* Team Activity + Training Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         {/* Team Activity */}

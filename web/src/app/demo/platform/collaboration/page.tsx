@@ -250,6 +250,80 @@ export default function CollaborationPage() {
                 <p className="text-sm" style={{ color: 'var(--foreground)', lineHeight: 1.6 }}>
                   {thread.answer}
                 </p>
+
+                {/* Jargon detection - only on asylum answer (q1) */}
+                {thread.id === 'q1' && (
+                  <div className="mt-3">
+                    <div
+                      className="rounded-md p-3 mb-2"
+                      style={{
+                        background: '#fffbeb',
+                        border: '1px solid #fde68a',
+                      }}
+                    >
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span
+                          className="text-xs font-semibold uppercase tracking-wide"
+                          style={{ color: '#92400e' }}
+                        >
+                          Clarity Note
+                        </span>
+                      </div>
+                      <p className="text-xs" style={{ color: '#78350f', lineHeight: 1.5 }}>
+                        Your answer mentions &quot;245(i) adjustment&quot; and &quot;motion to continue.&quot; Maria may not be familiar with these terms.
+                      </p>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          className="px-3 py-1 rounded text-xs font-medium"
+                          style={{ background: 'var(--accent-gold)', color: '#fff', cursor: 'default' }}
+                        >
+                          Auto-add explanations
+                        </button>
+                        <button
+                          className="px-3 py-1 rounded text-xs font-medium"
+                          style={{
+                            background: 'transparent',
+                            color: 'var(--muted)',
+                            border: '1px solid var(--border-light)',
+                            cursor: 'default',
+                          }}
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Auto-expanded definitions */}
+                    <div
+                      className="rounded-md p-3"
+                      style={{
+                        background: '#f8f8f6',
+                        border: '1px solid var(--border-light)',
+                      }}
+                    >
+                      <div
+                        className="text-xs font-semibold uppercase tracking-wide mb-2"
+                        style={{ color: 'var(--muted)' }}
+                      >
+                        Term Definitions (auto-added)
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <p className="text-xs" style={{ color: 'var(--foreground)', lineHeight: 1.5 }}>
+                          <span className="font-semibold">245(i):</span>{' '}
+                          <span style={{ fontStyle: 'italic', color: 'var(--muted)' }}>
+                            A provision allowing certain undocumented individuals to adjust status if a visa petition was filed before April 30, 2001.
+                          </span>
+                        </p>
+                        <p className="text-xs" style={{ color: 'var(--foreground)', lineHeight: 1.5 }}>
+                          <span className="font-semibold">Motion to continue:</span>{' '}
+                          <span style={{ fontStyle: 'italic', color: 'var(--muted)' }}>
+                            A request to the immigration judge to postpone the removal hearing.
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div
@@ -297,6 +371,95 @@ export default function CollaborationPage() {
                     Send Answer
                   </button>
                 </div>
+
+                {/* AI-Suggested Response for unanswered questions */}
+                {thread.id === 'q2' && (
+                  <div
+                    className="rounded-md p-3 mt-3"
+                    style={{
+                      background: '#f5f5f5',
+                      border: '1px solid var(--border-light)',
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className="text-xs font-bold px-1.5 py-0.5 rounded"
+                        style={{ background: '#e5e7eb', color: '#6b7280' }}
+                      >
+                        AI
+                      </span>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
+                        Suggested Response (based on your past answers)
+                      </span>
+                    </div>
+                    <p className="text-sm mb-3" style={{ color: 'var(--foreground)', lineHeight: 1.6 }}>
+                      &quot;Start with informal discovery first -- request bank statements for the last 3 years from both parties. Look for large transfers to family members around the time of separation. If you find evidence of hidden assets, we can file a motion for formal discovery. Don&apos;t tip off opposing counsel yet.&quot;
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        className="px-3 py-1.5 rounded-md text-xs font-medium"
+                        style={{ background: 'var(--accent-gold)', color: '#fff', cursor: 'default' }}
+                      >
+                        Use This Response
+                      </button>
+                      <button
+                        className="px-3 py-1.5 rounded-md text-xs font-medium"
+                        style={{
+                          background: 'transparent',
+                          color: 'var(--heading)',
+                          border: '1px solid var(--border-light)',
+                          cursor: 'default',
+                        }}
+                      >
+                        Edit First
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {thread.id === 'q3' && (
+                  <div
+                    className="rounded-md p-3 mt-3"
+                    style={{
+                      background: '#f5f5f5',
+                      border: '1px solid var(--border-light)',
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className="text-xs font-bold px-1.5 py-0.5 rounded"
+                        style={{ background: '#e5e7eb', color: '#6b7280' }}
+                      >
+                        AI
+                      </span>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--muted)' }}>
+                        Suggested Response
+                      </span>
+                    </div>
+                    <p className="text-sm mb-3" style={{ color: 'var(--foreground)', lineHeight: 1.6 }}>
+                      &quot;A 2-hour delay between the stop and the breathalyzer test is significant. File a motion to suppress under KRS 189A.103 -- the test must be administered within a reasonable time. Pull the officer&apos;s body cam to verify the exact timeline. This could be our strongest defense angle.&quot;
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        className="px-3 py-1.5 rounded-md text-xs font-medium"
+                        style={{ background: 'var(--accent-gold)', color: '#fff', cursor: 'default' }}
+                      >
+                        Use This Response
+                      </button>
+                      <button
+                        className="px-3 py-1.5 rounded-md text-xs font-medium"
+                        style={{
+                          background: 'transparent',
+                          color: 'var(--heading)',
+                          border: '1px solid var(--border-light)',
+                          cursor: 'default',
+                        }}
+                      >
+                        Edit First
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -471,6 +634,70 @@ export default function CollaborationPage() {
             Decline
           </button>
         </div>
+      </div>
+
+      {/* Anonymous Team Feedback */}
+      <div
+        className="rounded-lg p-5 mb-8"
+        style={{
+          background: '#f8f8f6',
+          border: '1px solid var(--border-light)',
+        }}
+      >
+        <h2
+          className="text-lg font-semibold mb-2"
+          style={{
+            fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
+            color: 'var(--heading)',
+          }}
+        >
+          Anonymous Team Feedback
+        </h2>
+        <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+          Team members can flag steps where they need more guidance. You won&apos;t see who submitted these.
+        </p>
+
+        <div className="flex flex-col gap-3 mb-4">
+          <div
+            className="rounded-md p-4"
+            style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border-light)',
+            }}
+          >
+            <p className="text-sm mb-2" style={{ color: 'var(--foreground)' }}>
+              Step &quot;Determine Concurrent Filing&quot; has been flagged as confusing by a team member.
+            </p>
+            <span
+              className="text-sm font-medium"
+              style={{ color: 'var(--accent-gold)', cursor: 'pointer' }}
+            >
+              Add More Guidance to This Step &rarr;
+            </span>
+          </div>
+
+          <div
+            className="rounded-md p-4"
+            style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border-light)',
+            }}
+          >
+            <p className="text-sm mb-2" style={{ color: 'var(--foreground)' }}>
+              &quot;Financial disclosure process&quot; was flagged as unclear.
+            </p>
+            <span
+              className="text-sm font-medium"
+              style={{ color: 'var(--accent-gold)', cursor: 'pointer' }}
+            >
+              Add More Guidance &rarr;
+            </span>
+          </div>
+        </div>
+
+        <p className="text-xs" style={{ color: 'var(--muted-light)' }}>
+          No names. No judgment. Just better documentation.
+        </p>
       </div>
 
       {/* Knowledge Capture Section */}
