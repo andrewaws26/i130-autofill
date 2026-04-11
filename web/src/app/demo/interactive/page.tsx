@@ -108,7 +108,7 @@ export default function InteractiveDemoPage() {
     const state = currentPhase?.dashboardState;
     if (state === 'warning' || state === 'crisis') {
       costIntervalRef.current = setInterval(() => {
-        setCostCounter(prev => prev + 47);
+        setCostCounter(prev => prev + 250);
       }, 2000);
     }
 
@@ -282,7 +282,7 @@ export default function InteractiveDemoPage() {
           }),
         }}>
           {currentPhase?.dashboardState === 'resolved'
-            ? `$${(costCounter * 3).toLocaleString()} saved/year`
+            ? `$${Math.max(costCounter * 8, 54000).toLocaleString()} saved/year`
             : `-$${costCounter.toLocaleString()} lost`
           }
         </div>
@@ -689,17 +689,64 @@ function renderContent(
     return (
       <div style={{
         textAlign: 'center' as const,
-        padding: '40px 20px',
+        padding: '20px 20px',
+        maxWidth: 500,
+        margin: '0 auto',
       }}>
         <div style={{
-          fontSize: 'clamp(1.25rem, 2vw, 1.5rem)',
-          color: '#9ca3af',
+          fontSize: '1rem',
+          color: '#6b7280',
           fontStyle: 'italic',
-          maxWidth: 400,
-          margin: '0 auto',
-          lineHeight: 1.5,
+          marginBottom: 24,
+          animation: 'fadeInUp 0.5s ease-out both',
         }}>
           6 months later...
+        </div>
+
+        {/* Maria's message - center stage, not in corner */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: 16,
+          padding: '24px',
+          border: '1px solid #d8d8d8',
+          textAlign: 'left' as const,
+          animation: 'fadeInUp 0.5s ease-out 0.5s both',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <div style={{
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              backgroundColor: '#b8860b',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem',
+              fontWeight: 700,
+            }}>ML</div>
+            <div>
+              <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#2c3e50' }}>Maria Lopez</div>
+              <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Former Associate Attorney</div>
+            </div>
+          </div>
+          <div style={{
+            fontSize: '1.0625rem',
+            color: '#32373c',
+            lineHeight: 1.6,
+          }}>
+            &ldquo;Hey - I heard about the new system. James and I have been talking... would you consider bringing us back?&rdquo;
+          </div>
+        </div>
+
+        <div style={{
+          marginTop: 20,
+          fontSize: '0.875rem',
+          color: '#6b7280',
+          animation: 'fadeInUp 0.5s ease-out 1s both',
+        }}>
+          They left because there was no system.<br/>
+          Now there is.
         </div>
       </div>
     );

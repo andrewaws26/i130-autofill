@@ -235,7 +235,8 @@ function Field({
   masked?: boolean;
   onToggleMask?: () => void;
 }) {
-  const filled = value !== undefined && value.trim() !== '';
+  const safeValue = value ?? '';
+  const filled = safeValue.trim() !== '';
 
   const handleChange = (raw: string) => {
     if (format === 'ssn') onChange(formatSSN(raw));
@@ -244,7 +245,7 @@ function Field({
     else onChange(raw);
   };
 
-  const displayValue = masked ? maskSSN(value) : value;
+  const displayValue = masked ? maskSSN(safeValue) : safeValue;
 
   return (
     <div className={className}>
@@ -300,14 +301,15 @@ function SelectField({
   options: { value: string; label: string }[];
   className?: string;
 }) {
-  const filled = value !== undefined && value.trim() !== '';
+  const safeValue = value ?? '';
+  const filled = safeValue.trim() !== '';
   return (
     <div className={className}>
       <label className="block text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
         {label}
       </label>
       <select
-        value={value}
+        value={safeValue}
         onChange={(e) => onChange(e.target.value)}
         className="form-select w-full"
         style={{
