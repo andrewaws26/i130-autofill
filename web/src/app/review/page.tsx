@@ -1,9 +1,47 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Component, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import type { IntakeData } from '@/lib/types';
 import { createEmptyIntakeData } from '@/lib/types';
+
+/* Error boundary to catch render crashes */
+class ReviewErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error('Review page render error:', error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ maxWidth: 500, margin: '80px auto', textAlign: 'center', padding: '0 20px' }}>
+          <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--heading)', marginBottom: 12 }}>
+            Something went wrong loading the review page
+          </p>
+          <p style={{ color: 'var(--muted)', marginBottom: 24, fontSize: '0.9375rem' }}>
+            The extracted data may have an unexpected format. Please try uploading the intake form again.
+          </p>
+          <button
+            onClick={() => { sessionStorage.removeItem('intakeData'); window.location.href = '/'; }}
+            style={{
+              background: 'var(--accent-gold)', color: '#fff', border: 'none',
+              borderRadius: 8, padding: '12px 28px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Start Over
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 /* ================================================================
    Encryption helpers for localStorage drafts
@@ -411,7 +449,15 @@ const RELATIONSHIP_OPTIONS = [
    Review Page
    ================================================================ */
 
-export default function ReviewPage() {
+export default function ReviewPageWrapper() {
+  return (
+    <ReviewErrorBoundary>
+      <ReviewPageInner />
+    </ReviewErrorBoundary>
+  );
+}
+
+function ReviewPageInner() {
   const router = useRouter();
   const downloadRef = useRef<HTMLAnchorElement>(null);
 
@@ -435,13 +481,32 @@ export default function ReviewPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  /* Merge helper for loading data */
-  const mergeWithTemplate = useCallback((parsed: IntakeData): IntakeData => {
+  /* Merge helper - deep-merges extracted data with empty template so every property exists */
+  const mergeWithTemplate = useCallback((parsed: Partial<IntakeData>): IntakeData => {
     const base = createEmptyIntakeData();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const safePet: any = parsed?.petitioner || {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const safeBen: any = parsed?.beneficiary || {};
     return {
-      relationship: parsed.relationship || base.relationship,
-      petitioner: { ...base.petitioner, ...parsed.petitioner, mailing_address: { ...base.petitioner.mailing_address, ...(parsed.petitioner?.mailing_address || {}) } },
-      beneficiary: { ...base.beneficiary, ...parsed.beneficiary, current_address: { ...base.beneficiary.current_address, ...(parsed.beneficiary?.current_address || {}) }, last_address_outside_us: { ...base.beneficiary.last_address_outside_us, ...(parsed.beneficiary?.last_address_outside_us || {}) } },
+      relationship: parsed?.relationship || base.relationship,
+      petitioner: {
+        ...base.petitioner,
+        ...safePet,
+        mailing_address: { ...base.petitioner.mailing_address, ...(safePet.mailing_address || {}) },
+        address_history: Array.isArray(safePet.address_history) && safePet.address_history.length > 0
+          ? safePet.address_history
+          : base.petitioner.address_history,
+      },
+      beneficiary: {
+        ...base.beneficiary,
+        ...safeBen,
+        current_address: { ...base.beneficiary.current_address, ...(safeBen.current_address || {}) },
+        last_address_outside_us: { ...base.beneficiary.last_address_outside_us, ...(safeBen.last_address_outside_us || {}) },
+        address_history: Array.isArray(safeBen.address_history) && safeBen.address_history.length > 0
+          ? safeBen.address_history
+          : base.beneficiary.address_history,
+      },
     };
   }, []);
 
