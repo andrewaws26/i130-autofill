@@ -10,17 +10,6 @@ interface ChatEntry {
   phaseIndex: number;
 }
 
-// ─── Status config ──────────────────────────────────────────────────────────
-const STATUS_CONFIG: Record<
-  NonNullable<DemoEvent['dashboardState']>,
-  { color: string; bg: string; label: string; pulse: boolean }
-> = {
-  normal: { color: '#2d6a4f', bg: 'rgba(45,106,79,0.12)', label: 'All Clear', pulse: false },
-  warning: { color: '#92400e', bg: 'rgba(146,64,14,0.12)', label: 'Attention Needed', pulse: false },
-  crisis: { color: '#9b2c2c', bg: 'rgba(155,44,44,0.15)', label: 'Critical Issue', pulse: true },
-  resolved: { color: '#2d6a4f', bg: 'rgba(45,106,79,0.12)', label: 'Resolved', pulse: false },
-};
-
 // ─── Before/After paths ─────────────────────────────────────────────────────
 const BEFORE_STEPS = [
   { text: 'Maria guesses', icon: '?' },
@@ -212,9 +201,6 @@ export default function InteractiveDemoPage() {
   // ── Progress ─────────────────────────────────────────────────────────────
   const progress = ((phaseIndex + 1) / totalPhases) * 100;
 
-  // ── Status indicator ─────────────────────────────────────────────────────
-  const status = STATUS_CONFIG[currentPhase?.dashboardState ?? 'normal'];
-
   // ── Visible chats - only show recent ones relevant to current narrative ──
   const visibleChats = chatHistory
     .filter((c) => c.phaseIndex === phaseIndex)
@@ -303,25 +289,26 @@ export default function InteractiveDemoPage() {
           </div>
         )}
 
-        {/* Status indicator */}
-        <div
-          style={{
-            ...styles.statusRow,
-            opacity: fadeIn ? 1 : 0,
-          }}
-        >
-          <div
-            style={{
-              ...styles.statusDot,
-              backgroundColor: status.color,
-              boxShadow: status.pulse
-                ? `0 0 0 4px ${status.bg}, 0 0 12px ${status.color}`
-                : 'none',
-              animation: status.pulse ? 'statusPulse 1.5s ease-in-out infinite' : 'none',
-            }}
-          />
-          <span style={{ ...styles.statusLabel, color: status.color }}>
-            {status.label}
+        {/* Scene context - always visible */}
+        <div style={{
+          textAlign: 'center' as const,
+          padding: '8px 16px',
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: '#9ca3af',
+          textTransform: 'uppercase' as const,
+          letterSpacing: '0.08em',
+          width: '100%',
+          position: 'relative',
+        }}>
+          {phaseIndex <= 1 ? 'THE PROBLEM' :
+           phaseIndex <= 6 ? 'WHAT HAPPENED' :
+           phaseIndex <= 7 ? 'THE GAP' :
+           phaseIndex <= 8 ? 'THE COMPARISON' :
+           phaseIndex <= 10 ? 'THE SOLUTION' :
+           'THE RESULT'}
+          <span style={{ position: 'absolute', right: 16, top: 8, fontWeight: 400 }}>
+            {phaseIndex + 1} of {totalPhases}
           </span>
         </div>
 
@@ -478,21 +465,20 @@ function renderContent(
           marginBottom: 20,
           animation: 'fadeInUp 0.5s ease-out both',
         }}>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 8 }}>
+            This is a text message from your employee
+          </div>
           <div style={{
             fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)',
             fontWeight: 600,
             color: '#ffffff',
             fontFamily: '"Source Serif 4", serif',
-            marginBottom: 8,
+            marginBottom: 4,
           }}>
             Tuesday morning. Your phone buzzes.
           </div>
-          <div style={{
-            fontSize: '0.9375rem',
-            color: '#9ca3af',
-            lineHeight: 1.5,
-          }}>
-            Your associate attorney is texting you.
+          <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+            Maria Lopez is your associate attorney. She has been with the firm for 8 months.
           </div>
         </div>
 
@@ -621,6 +607,9 @@ function renderContent(
   if (phase.phase === 'cost-splash') {
     return (
       <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
+        <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase' as const, letterSpacing: '0.08em', marginBottom: 16, textAlign: 'center' as const }}>
+          The cost of losing two attorneys
+        </div>
         {/* Cost headline */}
         <div style={{
           textAlign: 'center' as const,
@@ -717,14 +706,8 @@ function renderContent(
         maxWidth: 500,
         margin: '0 auto',
       }}>
-        <div style={{
-          fontSize: '1rem',
-          color: '#6b7280',
-          fontStyle: 'italic',
-          marginBottom: 24,
-          animation: 'fadeInUp 0.5s ease-out both',
-        }}>
-          6 months later...
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          Six months after you installed Case Keeper, Maria reaches out.
         </div>
 
         {/* Maria's message - center stage, not in corner */}
@@ -780,6 +763,9 @@ function renderContent(
   if (phase.phase === 'recognition') {
     return (
       <div style={{ width: '100%' }}>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 16, textAlign: 'center' as const }}>
+          These two lists show the same time period from two different perspectives. Maria&apos;s experience on the left. What you saw on the right.
+        </div>
         <div className="demo-recognition-grid" style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
@@ -916,6 +902,10 @@ function renderContent(
   // First sign - stuck step
   if (phase.phase === 'first-sign') {
     return (
+      <div>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          This is Maria&apos;s case workflow. Each step must be completed in order. She is stuck on Step 4.
+        </div>
       <div style={styles.singleCard}>
         <div style={styles.cardHeader}>
           <span style={styles.cardHeaderLabel}>Gutierrez - Asylum / I-130</span>
@@ -947,12 +937,17 @@ function renderContent(
           ))}
         </div>
       </div>
+      </div>
     );
   }
 
   // Escalation
   if (phase.phase === 'escalation') {
     return (
+      <div>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          Maria filed the petition without completing all the steps. This is what you received.
+        </div>
       <div style={styles.singleCard}>
         <div style={styles.cardHeader}>
           <span style={styles.cardHeaderLabel}>Gutierrez - Asylum / I-130</span>
@@ -969,12 +964,17 @@ function renderContent(
           </p>
         </div>
       </div>
+      </div>
     );
   }
 
   // Crisis
   if (phase.phase === 'crisis') {
     return (
+      <div>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          This is a rejection letter from USCIS. Your client&apos;s case has been delayed because the wrong forms were filed.
+        </div>
       <div style={{
         ...styles.singleCard,
         borderColor: '#9b2c2c',
@@ -1028,6 +1028,7 @@ function renderContent(
           The Gutierrez family left Guatemala three years ago. They are counting on this petition. It just got delayed by six months because of a preventable mistake.
         </div>
       </div>
+      </div>
     );
   }
 
@@ -1040,6 +1041,10 @@ function renderContent(
         margin: '0 auto',
         textAlign: 'center' as const,
       }}>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          This is you, three weeks later, doing the work of three attorneys.
+        </div>
+
         {/* Time display */}
         <div style={{
           fontSize: '0.8125rem',
@@ -1116,6 +1121,10 @@ function renderContent(
   // Before/After
   if (phase.phase === 'before-after') {
     return (
+      <div>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 16, textAlign: 'center' as const }}>
+          The left column shows what happens without a system. The right column shows what happens with Case Keeper installed.
+        </div>
       <div className="demo-before-after" style={styles.beforeAfterContainer}>
         {/* Before path */}
         <div
@@ -1155,12 +1164,17 @@ function renderContent(
           ))}
         </div>
       </div>
+      </div>
     );
   }
 
   // Resolution - guided workflow
   if (phase.phase === 'resolution') {
     return (
+      <div>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          This is the same step Maria got stuck on. Now the system explains why it matters and lets her ask you directly. You get a suggested response to send with one tap.
+        </div>
       <div style={styles.singleCard}>
         <div style={styles.cardHeader}>
           <span style={styles.cardHeaderLabel}>Gutierrez - Guided Workflow</span>
@@ -1207,6 +1221,7 @@ function renderContent(
           </div>
         </div>
       </div>
+      </div>
     );
   }
 
@@ -1214,6 +1229,9 @@ function renderContent(
   if (phase.phase === 'payoff') {
     return (
       <div>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          These are the results after 6 months of using Case Keeper. Each number represents a specific improvement.
+        </div>
         {/* Stats grid */}
         <div className="demo-stats-grid" style={styles.statsGrid}>
           {PAYOFF_STATS.map((stat, i) => (
@@ -1340,6 +1358,9 @@ function renderContent(
 
     return (
       <div style={{ width: '100%', maxWidth: 500, margin: '0 auto' }}>
+        <div style={{ fontSize: '0.875rem', color: '#d1d5db', marginBottom: 12, textAlign: 'center' as const }}>
+          Use the sliders below to see how much your firm would save. The calculation is based on time saved per case.
+        </div>
         {/* ROI Calculator */}
         <div style={{
           backgroundColor: '#ffffff',
@@ -1429,6 +1450,9 @@ function renderContent(
         <div style={styles.closeContainer}>
           <a href="/demo/platform" style={styles.ctaPrimary}>Explore the Platform</a>
           <a href="/demo" style={styles.ctaSecondary}>Try the I-130 AutoFill</a>
+          <div style={{ fontSize: '0.8125rem', color: '#9ca3af', textAlign: 'center' as const, marginTop: 4, marginBottom: 8 }}>
+            See the AI read a handwritten intake form and fill the I-130 automatically
+          </div>
           <button onClick={onRestart} style={styles.ctaGhost}>Watch Again</button>
         </div>
       </div>
