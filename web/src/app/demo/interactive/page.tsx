@@ -499,7 +499,7 @@ function renderContent(
             lineHeight: 1.8,
           }}>
             <div style={{ marginBottom: 16 }}>
-              You handle immigration, family law, and criminal defense in Owensboro, Kentucky.
+              You handle immigration, family law, and criminal defense in Louisville, Kentucky.
             </div>
             <div style={{ marginBottom: 16 }}>
               You have <span style={{ color: '#b8860b', fontWeight: 600 }}>two associate attorneys</span>:
