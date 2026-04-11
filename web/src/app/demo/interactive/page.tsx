@@ -114,31 +114,46 @@ export default function InteractiveDemoPage() {
 
   // ── Auto-advance timer ───────────────────────────────────────────────────
   useEffect(() => {
-    // If current phase is interactive, wait for tap
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    // Interactive phases wait for tap - don't auto-advance
     if (currentPhase?.interactive) {
       setWaitingForTap(true);
       return;
     }
-    if (waitingForTap) return;
+
+    // Last phase - nothing to advance to
     if (phaseIndex >= totalPhases - 1) return;
 
+    // Non-interactive: auto-advance after the NEXT phase's time value
     const nextPhase = DEMO_TIMELINE[phaseIndex + 1];
     if (!nextPhase) return;
 
-    const delay = nextPhase.time * 1000;
-    timerRef.current = setTimeout(() => advancePhase(), Math.max(delay, 600));
+    const delay = Math.max(nextPhase.time * 1000, 600);
+    timerRef.current = setTimeout(() => {
+      setFadeIn(false);
+      setTimeout(() => {
+        setPhaseIndex(phaseIndex + 1);
+        setFadeIn(true);
+      }, 400);
+    }, delay);
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [phaseIndex, waitingForTap, advancePhase, currentPhase, totalPhases]);
+    // Only re-run when phaseIndex changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phaseIndex]);
 
   // ── Handle interactive tap ───────────────────────────────────────────────
   const handleTap = () => {
     if (!waitingForTap) return;
     setWaitingForTap(false);
-    // advancePhase will be triggered by the useEffect when waitingForTap becomes false
-    setTimeout(() => advancePhase(), 50);
+    setFadeIn(false);
+    setTimeout(() => {
+      setPhaseIndex((prev) => prev + 1);
+      setFadeIn(true);
+    }, 400);
   };
 
   // ── Restart ──────────────────────────────────────────────────────────────
