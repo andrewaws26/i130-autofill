@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 interface TrainingModule {
   title: string;
@@ -196,12 +197,13 @@ export default function TrainingPage() {
               Learn when to file I-485 concurrently with I-130, eligibility requirements, and common pitfalls.
             </p>
             <div className="flex items-center gap-3">
-              <button
-                className="px-5 py-2 rounded-md text-sm font-medium"
-                style={{ background: 'var(--accent-gold)', color: '#fff', cursor: 'default' }}
+              <Link
+                href="/demo/platform/training/module"
+                className="inline-flex px-5 py-2 rounded-md text-sm font-medium"
+                style={{ background: 'var(--accent-gold)', color: '#fff', textDecoration: 'none' }}
               >
                 Continue Lesson
-              </button>
+              </Link>
               <span className="text-xs" style={{ color: 'var(--muted-light)' }}>
                 Estimated: 15 minutes
               </span>
