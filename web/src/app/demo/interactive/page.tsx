@@ -64,7 +64,11 @@ export default function InteractiveDemoPage() {
   const [fadeIn, setFadeIn] = useState(true);
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
   const [beforeAfterStage, setBeforeAfterStage] = useState<'before' | 'after'>('before');
+  const [costCounter, setCostCounter] = useState(0);
+  const [roiAttorneys, setRoiAttorneys] = useState(3);
+  const [roiHourlyRate, setRoiHourlyRate] = useState(250);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const costIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const currentPhase = DEMO_TIMELINE[phaseIndex];
   const totalPhases = DEMO_TIMELINE.length;
@@ -95,6 +99,22 @@ export default function InteractiveDemoPage() {
       return () => clearTimeout(t);
     }
   }, [phaseIndex, currentPhase?.phase]);
+
+  // ── Cost clock ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (costIntervalRef.current) clearInterval(costIntervalRef.current);
+
+    const state = currentPhase?.dashboardState;
+    if (state === 'warning' || state === 'crisis') {
+      costIntervalRef.current = setInterval(() => {
+        setCostCounter(prev => prev + 47);
+      }, 2000);
+    }
+
+    return () => {
+      if (costIntervalRef.current) clearInterval(costIntervalRef.current);
+    };
+  }, [currentPhase?.dashboardState]);
 
   // ── Phase advance logic ──────────────────────────────────────────────────
   const advancePhase = useCallback(() => {
@@ -164,6 +184,7 @@ export default function InteractiveDemoPage() {
     setWaitingForTap(false);
     setFadeIn(true);
     setBeforeAfterStage('before');
+    setCostCounter(0);
     // First phase is interactive, so pause
     setTimeout(() => setWaitingForTap(true), 100);
   };
@@ -188,6 +209,34 @@ export default function InteractiveDemoPage() {
           }}
         />
       </div>
+
+      {/* Cost clock */}
+      {costCounter > 0 && currentPhase?.dashboardState !== 'normal' && phaseIndex > 1 && (
+        <div style={{
+          position: 'fixed',
+          top: 52,
+          right: 20,
+          padding: '8px 16px',
+          borderRadius: 8,
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          fontFamily: '"DM Sans", sans-serif',
+          zIndex: 35,
+          transition: 'all 0.4s ease',
+          ...(currentPhase?.dashboardState === 'resolved' ? {
+            backgroundColor: 'rgba(45,106,79,0.15)',
+            color: '#2d6a4f',
+          } : {
+            backgroundColor: 'rgba(155,44,44,0.15)',
+            color: '#ef4444',
+          }),
+        }}>
+          {currentPhase?.dashboardState === 'resolved'
+            ? `$${(costCounter * 3).toLocaleString()} saved/year`
+            : `-$${costCounter.toLocaleString()} lost`
+          }
+        </div>
+      )}
 
       {/* Main content container */}
       <div className="demo-container" style={styles.container}>
@@ -234,7 +283,7 @@ export default function InteractiveDemoPage() {
             transform: fadeIn ? 'translateY(0)' : 'translateY(12px)',
           }}
         >
-          {renderContent(currentPhase, beforeAfterStage, handleRestart)}
+          {renderContent(currentPhase, beforeAfterStage, handleRestart, roiAttorneys, setRoiAttorneys, roiHourlyRate, setRoiHourlyRate)}
         </div>
 
         {/* Chat bubbles */}
@@ -317,8 +366,84 @@ function renderContent(
   phase: DemoEvent | undefined,
   beforeAfterStage: 'before' | 'after',
   onRestart: () => void,
+  roiAttorneys: number,
+  setRoiAttorneys: (v: number) => void,
+  roiHourlyRate: number,
+  setRoiHourlyRate: (v: number) => void,
 ) {
   if (!phase) return null;
+
+  // Text thread (resignation messages) - hook phase
+  if (phase.textThread) {
+    return (
+      <div style={{
+        width: '100%',
+        maxWidth: 400,
+        margin: '0 auto',
+        display: 'flex',
+        flexDirection: 'column' as const,
+        gap: 8,
+      }}>
+        <div style={{
+          textAlign: 'center' as const,
+          fontSize: '0.8125rem',
+          color: '#9ca3af',
+          marginBottom: 8,
+        }}>
+          {phase.textThread.from}
+        </div>
+        {phase.textThread.messages.map((msg, i) => (
+          <div
+            key={i}
+            style={{
+              alignSelf: 'flex-start',
+              maxWidth: '80%',
+              padding: '10px 16px',
+              borderRadius: '18px 18px 18px 4px',
+              backgroundColor: '#e5e7eb',
+              color: '#1f2937',
+              fontSize: '0.9375rem',
+              lineHeight: 1.4,
+              animation: `fadeInUp 0.4s ease-out ${0.8 + i * 1.2}s both`,
+            }}
+          >
+            {msg}
+          </div>
+        ))}
+        <div style={{
+          textAlign: 'center' as const,
+          fontSize: '0.8125rem',
+          color: '#9b2c2c',
+          marginTop: 12,
+          fontWeight: 500,
+          animation: `fadeInUp 0.4s ease-out ${0.8 + phase.textThread.messages.length * 1.2 + 0.5}s both`,
+        }}>
+          Third one this year.
+        </div>
+      </div>
+    );
+  }
+
+  // Maria returns - emotional closer
+  if (phase.phase === 'maria-returns') {
+    return (
+      <div style={{
+        textAlign: 'center' as const,
+        padding: '40px 20px',
+      }}>
+        <div style={{
+          fontSize: 'clamp(1.25rem, 2vw, 1.5rem)',
+          color: '#9ca3af',
+          fontStyle: 'italic',
+          maxWidth: 400,
+          margin: '0 auto',
+          lineHeight: 1.5,
+        }}>
+          6 months later...
+        </div>
+      </div>
+    );
+  }
 
   // Calm dashboard
   if (phase.phase === 'calm') {
@@ -394,22 +519,42 @@ function renderContent(
   // Crisis
   if (phase.phase === 'crisis') {
     return (
-      <div style={{ ...styles.singleCard, borderColor: '#9b2c2c', borderWidth: 2 }}>
-        <div style={{ ...styles.cardHeader, borderBottomColor: '#9b2c2c' }}>
+      <div style={{
+        ...styles.singleCard,
+        borderColor: '#9b2c2c',
+        borderWidth: 2,
+      }}>
+        <div style={{
+          ...styles.cardHeader,
+          backgroundColor: 'rgba(155,44,44,0.08)',
+        }}>
           <span style={{ ...styles.cardHeaderLabel, color: '#9b2c2c' }}>
             USCIS Request for Evidence
           </span>
           <span style={{ ...styles.badge, backgroundColor: 'rgba(155,44,44,0.12)', color: '#9b2c2c' }}>
-            Urgent
+            URGENT
           </span>
         </div>
         <div style={{ padding: '16px 20px' }}>
-          <p style={{ color: '#9b2c2c', fontSize: '0.9375rem', fontWeight: 500, margin: 0 }}>
-            Gutierrez asylum case: USCIS requesting evidence of concurrent filing eligibility.
-          </p>
-          <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: 12 }}>
-            Response deadline: 30 days. Client notified.
-          </p>
+          <div style={{ fontSize: '0.875rem', color: '#32373c', lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Re: Gutierrez, Rosa Maria - I-130</div>
+            <div style={{ color: '#6b7280', marginBottom: 8 }}>
+              The following evidence is required to continue processing this petition:
+            </div>
+            <div style={{
+              padding: '12px 16px',
+              backgroundColor: 'rgba(155,44,44,0.05)',
+              borderRadius: 6,
+              borderLeft: '3px solid #9b2c2c',
+              fontSize: '0.8125rem',
+              color: '#9b2c2c',
+            }}>
+              Form I-485 (Adjustment of Status) was not filed concurrently as required for beneficiaries currently present in the United States. Please submit within 87 days or the petition will be denied.
+            </div>
+            <div style={{ marginTop: 12, fontSize: '0.8125rem', color: '#9ca3af' }}>
+              Response deadline: 87 days
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -541,19 +686,106 @@ function renderContent(
     );
   }
 
-  // Close - CTAs
+  // Close - ROI Calculator + CTAs
   if (phase.phase === 'close') {
+    const hoursPerCase = 0.75;
+    const casesPerMonth = roiAttorneys * 8;
+    const monthlySavings = Math.round(casesPerMonth * hoursPerCase * roiHourlyRate);
+    const annualSavings = monthlySavings * 12;
+
     return (
-      <div style={styles.closeContainer}>
-        <a href="/demo/platform" style={styles.ctaPrimary}>
-          Explore the Platform
-        </a>
-        <a href="/demo" style={styles.ctaSecondary}>
-          Try the I-130 AutoFill
-        </a>
-        <button onClick={onRestart} style={styles.ctaGhost}>
-          Watch Again
-        </button>
+      <div style={{ width: '100%', maxWidth: 500, margin: '0 auto' }}>
+        {/* ROI Calculator */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: 10,
+          padding: '28px 24px',
+          marginBottom: 24,
+          border: '1px solid #d8d8d8',
+        }}>
+          <div style={{
+            fontFamily: '"Source Serif 4", serif',
+            fontSize: '1.125rem',
+            fontWeight: 600,
+            color: '#2c3e50',
+            marginBottom: 20,
+            textAlign: 'center' as const,
+          }}>
+            Your firm&apos;s potential savings
+          </div>
+
+          {/* Attorneys slider */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: '0.8125rem', color: '#6b7280' }}>Attorneys</span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#2c3e50' }}>{roiAttorneys}</span>
+            </div>
+            <input
+              type="range"
+              min={1}
+              max={20}
+              value={roiAttorneys}
+              onChange={(e) => setRoiAttorneys(Number(e.target.value))}
+              style={{ width: '100%', accentColor: '#b8860b' }}
+            />
+          </div>
+
+          {/* Hourly rate slider */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: '0.8125rem', color: '#6b7280' }}>Avg hourly rate</span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#2c3e50' }}>${roiHourlyRate}/hr</span>
+            </div>
+            <input
+              type="range"
+              min={100}
+              max={500}
+              step={25}
+              value={roiHourlyRate}
+              onChange={(e) => setRoiHourlyRate(Number(e.target.value))}
+              style={{ width: '100%', accentColor: '#b8860b' }}
+            />
+          </div>
+
+          {/* Results */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 12,
+            padding: '16px 0',
+            borderTop: '1px solid #e8e8e8',
+          }}>
+            <div style={{ textAlign: 'center' as const }}>
+              <div style={{
+                fontSize: 'clamp(1.5rem, 3vw, 2rem)',
+                fontWeight: 700,
+                color: '#2d6a4f',
+                fontFamily: '"Source Serif 4", serif',
+              }}>
+                ${monthlySavings.toLocaleString()}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>per month</div>
+            </div>
+            <div style={{ textAlign: 'center' as const }}>
+              <div style={{
+                fontSize: 'clamp(1.5rem, 3vw, 2rem)',
+                fontWeight: 700,
+                color: '#b8860b',
+                fontFamily: '"Source Serif 4", serif',
+              }}>
+                ${annualSavings.toLocaleString()}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>per year</div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA buttons */}
+        <div style={styles.closeContainer}>
+          <a href="/demo/platform" style={styles.ctaPrimary}>Explore the Platform</a>
+          <a href="/demo" style={styles.ctaSecondary}>Try the I-130 AutoFill</a>
+          <button onClick={onRestart} style={styles.ctaGhost}>Watch Again</button>
+        </div>
       </div>
     );
   }

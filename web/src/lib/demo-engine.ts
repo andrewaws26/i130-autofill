@@ -19,6 +19,7 @@ export interface DemoEvent {
   showWorkflow?: boolean;
   showTraining?: boolean;
   highlightField?: string;
+  textThread?: { from: string; messages: string[]; }; // iMessage-style thread
 }
 
 export const DEMO_TIMELINE: DemoEvent[] = [
@@ -27,10 +28,18 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     time: 0,
     phase: 'hook',
     title: '',
-    narration: 'Your new associate just quit. No warning. Third one this year.',
+    narration: '',
     interactive: true,
     interactivePrompt: 'See what went wrong',
     dashboardState: 'normal',
+    textThread: {
+      from: 'Maria Lopez',
+      messages: [
+        "Hi, I've been thinking about this for a while...",
+        "I don't think this is the right fit for me.",
+        "Today is my last day. I'm sorry.",
+      ],
+    },
   },
 
   // Phase 2: CALM
@@ -125,7 +134,20 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     interactivePrompt: 'Finish',
   },
 
-  // Phase 10: CLOSE
+  // Phase: MARIA RETURNS
+  {
+    time: 0,
+    phase: 'maria-returns',
+    title: '',
+    narration: '',
+    dashboardState: 'resolved',
+    chatMessage: "Hey - I heard about the new system you set up. Would you consider bringing me back?",
+    chatFrom: 'Maria Lopez',
+    interactive: true,
+    interactivePrompt: "Don't lose another Maria",
+  },
+
+  // Phase: CLOSE
   {
     time: 0,
     phase: 'close',
