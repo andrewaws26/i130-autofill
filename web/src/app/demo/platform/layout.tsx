@@ -13,6 +13,29 @@ const ICONS = {
       <rect x="11" y="11" width="7" height="7" rx="1" />
     </svg>
   ),
+  workflow: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="5" height="4" rx="1" />
+      <rect x="7.5" y="8" width="5" height="4" rx="1" />
+      <rect x="13" y="14" width="5" height="4" rx="1" />
+      <path d="M7 4h2.5a1 1 0 011 1v3" />
+      <path d="M12.5 10h2a1 1 0 011 1v3" />
+    </svg>
+  ),
+  graduationCap: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 2L1 7l9 5 9-5-9-5z" />
+      <path d="M4 9v5c0 1.5 2.7 3 6 3s6-1.5 6-3V9" />
+      <line x1="17" y1="7" x2="17" y2="13" />
+    </svg>
+  ),
+  chat: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 4h14a1 1 0 011 1v8a1 1 0 01-1 1h-4l-3 3-3-3H3a1 1 0 01-1-1V5a1 1 0 011-1z" />
+      <line x1="6" y1="8" x2="14" y2="8" />
+      <line x1="6" y1="11" x2="11" y2="11" />
+    </svg>
+  ),
   users: (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="7" cy="6" r="3" />
@@ -70,6 +93,9 @@ const NAV_ITEMS = [
   { href: '/demo/platform/documents', label: 'Documents', icon: ICONS.file },
   { href: '/demo/platform/calendar', label: 'Calendar', icon: ICONS.calendar },
   { href: '/demo/platform/billing', label: 'Billing', icon: ICONS.dollar },
+  { href: '/demo/platform/workflow', label: 'Case Workflow', icon: ICONS.workflow },
+  { href: '/demo/platform/training', label: 'Training', icon: ICONS.graduationCap },
+  { href: '/demo/platform/collaboration', label: 'Collaboration', icon: ICONS.chat },
   { href: '/demo/platform/email', label: 'Email Drafts', icon: ICONS.mail },
   { href: '/demo', label: 'Form AutoFill', icon: ICONS.edit },
 ];

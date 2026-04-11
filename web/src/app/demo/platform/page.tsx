@@ -303,6 +303,135 @@ export default function DemoPlatformDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Team Activity + Training Progress */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        {/* Team Activity */}
+        <div
+          className="rounded-lg p-5"
+          style={{
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border-light)',
+          }}
+        >
+          <h2
+            className="text-lg font-semibold mb-4"
+            style={{
+              fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
+              color: 'var(--heading)',
+            }}
+          >
+            Team Activity
+          </h2>
+          <div className="flex flex-col gap-3">
+            {[
+              { text: 'Maria asked a question on Gutierrez Asylum', time: '2 hours ago', color: '#7c3aed' },
+              { text: 'Attorney Attum approved Htoo Paw I-485 review', time: 'Yesterday', color: '#16a34a' },
+              { text: 'Maria completed training: Responding to RFEs (Score: 90%)', time: '2 days ago', color: '#2563eb' },
+              { text: 'Attorney Attum answered question on Meh/Cardona case', time: '2 days ago', color: '#b8860b' },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="flex items-start gap-3 py-1.5"
+                style={{ borderBottom: idx < 3 ? '1px solid var(--border-light)' : 'none' }}
+              >
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: item.color,
+                    marginTop: 6,
+                    flexShrink: 0,
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm" style={{ color: 'var(--foreground)' }}>
+                    {item.text}
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--muted-light)' }}>
+                    {item.time}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Training Progress */}
+        <div
+          className="rounded-lg p-5"
+          style={{
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border-light)',
+          }}
+        >
+          <h2
+            className="text-lg font-semibold mb-4"
+            style={{
+              fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
+              color: 'var(--heading)',
+            }}
+          >
+            Training Progress
+          </h2>
+          <div className="flex items-center gap-3 mb-3">
+            <span
+              className="flex items-center justify-center rounded-full text-xs font-bold shrink-0"
+              style={{ width: 32, height: 32, background: '#7c3aed', color: '#fff' }}
+            >
+              ML
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium" style={{ color: 'var(--heading)' }}>
+                Maria Lopez
+              </div>
+              <div className="text-xs" style={{ color: 'var(--muted-light)' }}>
+                68% overall
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {[
+              { label: 'Immigration', completed: 12, total: 15, color: '#16a34a' },
+              { label: 'Family Law', completed: 8, total: 12, color: '#d97706' },
+              { label: 'Criminal Defense', completed: 3, total: 10, color: '#dc2626' },
+            ].map((area) => {
+              const pct = Math.round((area.completed / area.total) * 100);
+              return (
+                <div key={area.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                      {area.label}
+                    </span>
+                    <span className="text-xs font-medium" style={{ color: area.color }}>
+                      {area.completed}/{area.total}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: 6,
+                      borderRadius: 3,
+                      background: 'var(--border-light)',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${pct}%`,
+                        height: '100%',
+                        borderRadius: 3,
+                        background: area.color,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
