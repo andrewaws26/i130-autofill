@@ -455,12 +455,19 @@ export async function POST(request: Request) {
     let data;
     try {
       data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('JSON parse error. Raw response:', responseText);
-      return Response.json(
-        { error: 'Failed to parse extraction response as JSON', raw: responseText },
-        { status: 422 }
-      );
+    } catch {
+      // Claude returned text instead of JSON - likely not an intake form
+      const lower = responseText.toLowerCase();
+      const isWrongDoc = lower.includes('not a') || lower.includes('not an intake') ||
+        lower.includes('cannot extract') || lower.includes('not a uscis') ||
+        lower.includes('mailing') || lower.includes('not the requested');
+
+      const userMessage = isWrongDoc
+        ? 'This document is not an immigration intake form. Please upload the correct I-130 intake form (handwritten client questionnaire).'
+        : 'Could not read this document. Please make sure the image is clear and shows a handwritten I-130 intake form.';
+
+      console.error('Extraction failed - not valid JSON. Claude said:', responseText.slice(0, 300));
+      return Response.json({ error: userMessage }, { status: 422 });
     }
 
     // Post-process

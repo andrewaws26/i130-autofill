@@ -83,8 +83,16 @@ export default function UploadPage() {
         sessionStorage.setItem('intakeData', JSON.stringify(data));
         router.push('/review');
       } catch (err: unknown) {
-        const message =
+        let message =
           err instanceof Error ? err.message : 'An unexpected error occurred.';
+        // Never show raw JSON or technical details to the user
+        if (message.startsWith('{') || message.startsWith('[') || message.includes('JSON')) {
+          message = 'This document could not be processed. Please upload a handwritten I-130 intake form.';
+        }
+        // Truncate overly long error messages
+        if (message.length > 200) {
+          message = message.slice(0, 200).trim() + '...';
+        }
         setError(message);
         setProcessing(false);
       }
