@@ -59,39 +59,39 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     bgImage: '/demo-images/02-empty-desks.jpg',
   },
 
-  // Phase 2: CALM
+  // Phase 2: CALM - establish the normal
   {
     time: 0,
     phase: 'calm',
-    title: 'Last Monday',
-    narration: 'Last Monday morning. Cases assigned. Everyone seemed fine.',
+    title: 'Rewind to Last Monday',
+    narration: 'Your firm had 8 active cases. Your two associates were handling their caseloads. Everything looked normal.',
     chatMessage: 'Good morning! Starting on the Gutierrez asylum case today.',
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
     interactive: true,
-    interactivePrompt: 'Then, Tuesday',
+    interactivePrompt: 'Then came Tuesday',
   },
 
-  // Phase 3: FIRST SIGN
+  // Phase 3: FIRST SIGN - the invisible problem
   {
     time: 0,
     phase: 'first-sign',
-    title: 'Tuesday',
-    narration: 'Maria opened the Gutierrez case. Step 4: Determine Concurrent Filing.',
+    title: 'Tuesday - Maria Gets Stuck',
+    narration: 'Maria was working the Gutierrez asylum case. She hit a step she didn\'t understand: "Determine Concurrent Filing." She didn\'t ask you for help.',
     innerThought: 'What does concurrent filing mean? I should know this. She\'ll think I\'m not qualified if I ask.',
     dashboardState: 'warning',
     bgImage: '/demo-images/03-maria-struggling.jpg',
     caseStatus: 'Maria has been on this step for 2 days. No questions asked.',
     interactive: true,
-    interactivePrompt: 'What happened next',
+    interactivePrompt: 'What did she do?',
   },
 
-  // Phase 4: ESCALATION
+  // Phase 4: ESCALATION - the wrong decision
   {
     time: 0,
     phase: 'escalation',
-    title: 'Wednesday',
-    narration: 'She couldn\'t find the answer. She made her best guess.',
+    title: 'Wednesday - Maria Guesses',
+    narration: 'Maria couldn\'t find the answer online. She didn\'t want to look incompetent. So she made her best guess and filed the I-130 by itself. She should have also filed the I-485.',
     innerThought: 'I think it\'s just the I-130. I\'ll file it and figure out the rest later. Please let this be right.',
     bgImage: '/demo-images/04-submit-button.jpg',
     chatMessage: 'Filed the I-130 for Gutierrez. Moving to next case.',
@@ -102,12 +102,12 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     interactivePrompt: 'Two weeks later',
   },
 
-  // Phase 5: CRISIS
+  // Phase 5: CRISIS - the consequence
   {
     time: 0,
     phase: 'crisis',
-    title: 'Two Weeks Later',
-    narration: 'USCIS rejected the approach. The client is calling. You\'re finding out for the first time.',
+    title: 'Two Weeks Later - USCIS Responds',
+    narration: 'USCIS sent a Request for Evidence. The Gutierrez family\'s petition is delayed by 6 months. The client is upset. This is the first time you\'re hearing about any of this.',
     innerThought: 'I knew I should have asked. But I didn\'t know what I didn\'t know. I can\'t keep doing this.',
     dashboardState: 'crisis',
     bgImage: '/demo-images/05-rfe-letter.jpg',
@@ -117,50 +117,50 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     interactivePrompt: 'That night',
   },
 
-  // Phase: ATTUM'S LATE NIGHT
+  // Phase: ATTUM'S LATE NIGHT - the owner's reality
   {
     time: 0,
     phase: 'late-night',
-    title: '11:47 PM',
-    narration: '',
+    title: '11:47 PM - Your Office',
+    narration: 'Three weeks later. You\'re alone, redoing the work. Covering 15 cases. Wondering why this keeps happening.',
     dashboardState: 'crisis',
     bgImage: '/demo-images/06-attum-late-night.jpg',
     innerThought: undefined,
     interactive: true,
-    interactivePrompt: 'What nobody saw',
+    interactivePrompt: 'Here\'s what you didn\'t see',
   },
 
-  // Phase 5b: RECOGNITION - the gap between two perspectives
+  // Phase: RECOGNITION - the gap revealed
   {
     time: 0,
     phase: 'recognition',
-    title: '',
-    narration: '',
+    title: 'The Invisible Gap',
+    narration: 'Maria\'s experience and yours were completely different. Neither of you knew.',
     dashboardState: 'crisis',
     bgImage: '/demo-images/07-the-gap.jpg',
     interactive: true,
-    interactivePrompt: 'See how Case Keeper prevents this',
+    interactivePrompt: 'There is a solution',
   },
 
-  // Phase 6: BEFORE/AFTER
+  // Phase: BEFORE/AFTER - the comparison
   {
     time: 0,
     phase: 'before-after',
-    title: 'Same scenario. Two outcomes.',
-    narration: '',
+    title: 'What If There Was a System?',
+    narration: 'Same situation. Same people. Different outcome.',
     showBefore: true,
     showAfter: true,
     interactive: true,
-    interactivePrompt: 'See it in action',
+    interactivePrompt: 'See it work',
     dashboardState: 'warning',
   },
 
-  // Phase 7: RESOLUTION
+  // Phase: RESOLUTION - the fix in action
   {
     time: 0,
     phase: 'resolution',
-    title: 'Tuesday, with Case Keeper',
-    narration: 'Same Tuesday. Same confusing step. But this time, Maria isn\'t alone.',
+    title: 'Tuesday Again - This Time with Case Keeper',
+    narration: 'Maria hits the same step. But now the system explains WHY this step matters and gives her a button to ask you directly. You get a suggested response. You tap send. 30 seconds.',
     innerThought: 'I don\'t understand this step. But I can see WHY it matters and there\'s a button to ask. Let me just ask.',
     bgImage: '/demo-images/08-the-bridge.jpg',
     chatMessage: 'Quick question on concurrent filing - does asylum status qualify?',
@@ -171,20 +171,20 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     interactivePrompt: 'See the result',
   },
 
-  // Phase 8: PAYOFF
+  // Phase: PAYOFF - the numbers
   {
     time: 0,
     phase: 'payoff',
-    title: 'The Result',
-    narration: 'Your expertise captured. Your team guided. Without a single training session.',
+    title: '6 Months Later - The Numbers',
+    narration: 'Zero rejected filings. Both associates still here. Your expertise captured in the system. No training sessions needed.',
     showDigest: true,
     showTraining: true,
     dashboardState: 'resolved',
     interactive: true,
-    interactivePrompt: 'Finish',
+    interactivePrompt: 'One more thing',
   },
 
-  // Phase: MARIA RETURNS
+  // Phase: MARIA RETURNS - the emotional payoff
   {
     time: 0,
     phase: 'maria-returns',
