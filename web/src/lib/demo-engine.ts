@@ -121,7 +121,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
   {
     time: 0,
     phase: 'late-night',
-    title: '11:47 PM - Your Office',
+    title: 'Three Weeks Later - 11:47 PM',
     narration: 'Three weeks later. You\'re alone, redoing the work. Covering 15 cases. Wondering why this keeps happening.',
     dashboardState: 'crisis',
     bgImage: '/demo-images/06-attum-late-night.jpg',
@@ -191,8 +191,6 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: '',
     narration: '',
     dashboardState: 'resolved',
-    chatMessage: "Hey - I heard about the new system. James and I have been talking... would you consider bringing us back?",
-    chatFrom: 'Maria Lopez',
     interactive: true,
     interactivePrompt: "Don't lose another one",
   },

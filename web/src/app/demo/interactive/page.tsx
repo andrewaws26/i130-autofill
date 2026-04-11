@@ -44,7 +44,7 @@ const WORKFLOW_STEPS = [
   { label: 'Client Intake', done: true },
   { label: 'Document Collection', done: true },
   { label: 'I-130 Preparation', done: true },
-  { label: 'Determine Concurrent Filing', done: false, active: true, hint: 'Why This Matters: If the beneficiary is in the US with a current priority date, filing I-485 concurrently saves 6-12 months. Missing this means a separate application, more fees, and longer wait.' },
+  { label: 'Determine Concurrent Filing', done: false, active: true, hint: 'If the beneficiary is in the US with a current priority date, filing I-485 concurrently saves 6-12 months. Missing this means a separate application, more fees, and longer wait.' },
   { label: 'Final Review', done: false },
   { label: 'File with USCIS', done: false },
 ];
@@ -109,7 +109,7 @@ export default function InteractiveDemoPage() {
     if (state === 'warning' || state === 'crisis') {
       costIntervalRef.current = setInterval(() => {
         setCostCounter(prev => prev + 250);
-      }, 2000);
+      }, 1000);
     }
 
     return () => {
@@ -282,7 +282,7 @@ export default function InteractiveDemoPage() {
           }),
         }}>
           {currentPhase?.dashboardState === 'resolved'
-            ? `$${Math.max(costCounter * 8, 54000).toLocaleString()} saved/year`
+            ? '$54,000 saved/year'
             : `-$${costCounter.toLocaleString()} lost`
           }
         </div>
@@ -892,7 +892,7 @@ function renderContent(
           }}>
             It&apos;s not that she was a bad lawyer.<br/>
             It&apos;s not that you&apos;re a bad mentor.<br/>
-            <span style={{ color: '#ffffff', fontWeight: 500, fontStyle: 'normal' }}>
+            <span style={{ color: '#ffffff', fontSize: 'clamp(1.125rem, 2vw, 1.375rem)', fontWeight: 600, fontStyle: 'normal' }}>
               There&apos;s just no system connecting your expertise to the people who need it.
             </span>
           </div>
@@ -1315,7 +1315,7 @@ function renderContent(
                   justifyContent: 'center',
                   fontSize: '0.6rem',
                   fontWeight: 700,
-                }}>{mod.done ? 'v' : ''}</div>
+                }}>{mod.done ? '\u2713' : ''}</div>
                 <span style={{ color: mod.done ? '#32373c' : '#9ca3af' }}>{mod.name}</span>
               </div>
               {mod.score && (
@@ -1530,7 +1530,7 @@ const styles: Record<string, React.CSSProperties> = {
     top: 0,
     left: 0,
     right: 0,
-    height: 3,
+    height: 4,
     backgroundColor: 'rgba(255,255,255,0.08)',
     zIndex: 50,
   },

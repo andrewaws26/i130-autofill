@@ -89,53 +89,68 @@ async function getEncryptionKey(): Promise<CryptoKey> {
 }
 
 /* ================================================================
+   Safe coercion helper
+   ================================================================ */
+
+/** Coerce any value to a string. Handles null, undefined, numbers, booleans. */
+const safeString = (v: unknown): string => {
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  return String(v);
+};
+
+/* ================================================================
    Formatting helpers
    ================================================================ */
 
 function formatSSN(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 9);
+  const digits = safeString(value).replace(/\D/g, '').slice(0, 9);
   if (digits.length <= 3) return digits;
   if (digits.length <= 5) return `${digits.slice(0,3)}-${digits.slice(3)}`;
   return `${digits.slice(0,3)}-${digits.slice(3,5)}-${digits.slice(5)}`;
 }
 
 function formatDate(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 8);
+  const digits = safeString(value).replace(/\D/g, '').slice(0, 8);
   if (digits.length <= 2) return digits;
   if (digits.length <= 4) return `${digits.slice(0,2)}/${digits.slice(2)}`;
   return `${digits.slice(0,2)}/${digits.slice(2,4)}/${digits.slice(4)}`;
 }
 
 function formatPhone(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 10);
+  const digits = safeString(value).replace(/\D/g, '').slice(0, 10);
   if (digits.length <= 3) return digits;
   if (digits.length <= 6) return `${digits.slice(0,3)}-${digits.slice(3)}`;
   return `${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`;
 }
 
 function maskSSN(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  if (digits.length <= 4) return value;
+  const s = safeString(value);
+  const digits = s.replace(/\D/g, '');
+  if (digits.length <= 4) return s;
   return `***-**-${digits.slice(-4)}`;
 }
 
 function validateSSN(value: string): string | null {
-  if (!value) return null;
-  const digits = value.replace(/\D/g, '');
+  const v = safeString(value);
+  if (!v) return null;
+  const digits = v.replace(/\D/g, '');
   if (digits.length > 0 && digits.length !== 9) return 'SSN must be exactly 9 digits (XXX-XX-XXXX)';
   return null;
 }
 
 function validateDate(value: string): string | null {
-  if (!value) return null;
-  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!match && value.replace(/\D/g, '').length > 0) return 'Date must be MM/DD/YYYY';
+  const v = safeString(value);
+  if (!v) return null;
+  const match = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match && v.replace(/\D/g, '').length > 0) return 'Date must be MM/DD/YYYY';
   return null;
 }
 
 function validateState(value: string): string | null {
-  if (!value) return null;
-  if (value.length > 0 && !/^[A-Z]{2}$/.test(value)) return 'State must be exactly 2 uppercase letters';
+  const v = safeString(value);
+  if (!v) return null;
+  if (v.length > 0 && !/^[A-Z]{2}$/.test(v)) return 'State must be exactly 2 uppercase letters';
   return null;
 }
 
@@ -235,7 +250,7 @@ function Field({
   masked?: boolean;
   onToggleMask?: () => void;
 }) {
-  const safeValue = value ?? '';
+  const safeValue = safeString(value);
   const filled = safeValue.trim() !== '';
 
   const handleChange = (raw: string) => {
@@ -301,7 +316,7 @@ function SelectField({
   options: { value: string; label: string }[];
   className?: string;
 }) {
-  const safeValue = value ?? '';
+  const safeValue = safeString(value);
   const filled = safeValue.trim() !== '';
   return (
     <div className={className}>
@@ -483,32 +498,55 @@ function ReviewPageInner() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  /* Merge helper - deep-merges extracted data with empty template so every property exists */
+  /* Merge helper - deep-merges extracted data with empty template so every property exists.
+     Coerces all leaf values to strings (except booleans and arrays) to prevent
+     crashes when the API returns numbers, null, or undefined. */
   const mergeWithTemplate = useCallback((parsed: Partial<IntakeData>): IntakeData => {
     const base = createEmptyIntakeData();
+
+    /** Deep-coerce an object's leaf values to strings, using `template` for defaults.
+        Preserves booleans and skips arrays (handled separately). */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const coerceObj = (template: Record<string, any>, source: Record<string, any>): Record<string, any> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: Record<string, any> = {};
+      for (const key of Object.keys(template)) {
+        const tVal = template[key];
+        const sVal = source?.[key];
+        if (typeof tVal === 'boolean') {
+          result[key] = typeof sVal === 'boolean' ? sVal : tVal;
+        } else if (Array.isArray(tVal)) {
+          // Arrays (address_history) handled by caller
+          result[key] = tVal;
+        } else if (typeof tVal === 'object' && tVal !== null) {
+          result[key] = coerceObj(tVal, typeof sVal === 'object' && sVal !== null ? sVal : {});
+        } else {
+          // String leaf: coerce whatever the API sent
+          result[key] = sVal != null ? safeString(sVal) : safeString(tVal);
+        }
+      }
+      return result;
+    };
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const safePet: any = parsed?.petitioner || {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const safeBen: any = parsed?.beneficiary || {};
+
+    const mergedPet = coerceObj(base.petitioner, safePet);
+    mergedPet.address_history = Array.isArray(safePet.address_history) && safePet.address_history.length > 0
+      ? safePet.address_history
+      : base.petitioner.address_history;
+
+    const mergedBen = coerceObj(base.beneficiary, safeBen);
+    mergedBen.address_history = Array.isArray(safeBen.address_history) && safeBen.address_history.length > 0
+      ? safeBen.address_history
+      : base.beneficiary.address_history;
+
     return {
-      relationship: parsed?.relationship || base.relationship,
-      petitioner: {
-        ...base.petitioner,
-        ...safePet,
-        mailing_address: { ...base.petitioner.mailing_address, ...(safePet.mailing_address || {}) },
-        address_history: Array.isArray(safePet.address_history) && safePet.address_history.length > 0
-          ? safePet.address_history
-          : base.petitioner.address_history,
-      },
-      beneficiary: {
-        ...base.beneficiary,
-        ...safeBen,
-        current_address: { ...base.beneficiary.current_address, ...(safeBen.current_address || {}) },
-        last_address_outside_us: { ...base.beneficiary.last_address_outside_us, ...(safeBen.last_address_outside_us || {}) },
-        address_history: Array.isArray(safeBen.address_history) && safeBen.address_history.length > 0
-          ? safeBen.address_history
-          : base.beneficiary.address_history,
-      },
+      relationship: safeString(parsed?.relationship || base.relationship),
+      petitioner: mergedPet as IntakeData['petitioner'],
+      beneficiary: mergedBen as IntakeData['beneficiary'],
     };
   }, []);
 
