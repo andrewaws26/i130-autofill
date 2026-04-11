@@ -315,6 +315,37 @@ export default function InteractiveDemoPage() {
         )}
       </div>
 
+      {/* Inner thought bubble */}
+      {currentPhase?.innerThought && (
+        <div className="demo-thought-bubble" style={{
+          position: 'fixed',
+          bottom: 120,
+          left: 24,
+          maxWidth: 300,
+          padding: '14px 18px',
+          borderRadius: '16px 16px 16px 4px',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))',
+          border: '1px solid rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 30,
+          animation: 'fadeInUp 0.5s ease-out both',
+          opacity: fadeIn ? 1 : 0,
+          transition: 'opacity 0.4s ease',
+        }}>
+          <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginBottom: 4, fontWeight: 500 }}>
+            What Maria was thinking
+          </div>
+          <div style={{
+            fontSize: '0.875rem',
+            color: '#e2e8f0',
+            fontStyle: 'italic',
+            lineHeight: 1.5,
+          }}>
+            &ldquo;{currentPhase.innerThought}&rdquo;
+          </div>
+        </div>
+      )}
+
       {/* Narration bar */}
       {currentPhase?.narration && (
         <div
@@ -440,6 +471,113 @@ function renderContent(
           lineHeight: 1.5,
         }}>
           6 months later...
+        </div>
+      </div>
+    );
+  }
+
+  // Recognition phase - two-column reveal
+  if (phase.phase === 'recognition') {
+    return (
+      <div style={{ width: '100%' }}>
+        <div className="demo-recognition-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 20,
+          marginBottom: 24,
+        }}>
+          {/* Maria's experience */}
+          <div style={{
+            backgroundColor: 'rgba(155,44,44,0.08)',
+            border: '1px solid rgba(155,44,44,0.2)',
+            borderRadius: 10,
+            padding: '20px',
+          }}>
+            <div style={{
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#ef4444',
+              marginBottom: 14,
+              textTransform: 'uppercase' as const,
+              letterSpacing: '0.04em',
+            }}>
+              What Maria experienced
+            </div>
+            {[
+              'Afraid to ask \u2014 didn\'t want to look incompetent',
+              'Didn\'t know what she didn\'t know',
+              'Googled answers at 11pm instead of asking',
+              'Made decisions alone she wasn\'t ready for',
+              'Felt like a failure every day',
+            ].map((item, i) => (
+              <div key={i} style={{
+                fontSize: '0.8125rem',
+                color: '#e2e8f0',
+                padding: '6px 0',
+                borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                lineHeight: 1.4,
+              }}>
+                {item}
+              </div>
+            ))}
+          </div>
+
+          {/* What the owner saw */}
+          <div style={{
+            backgroundColor: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 10,
+            padding: '20px',
+          }}>
+            <div style={{
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: '#9ca3af',
+              marginBottom: 14,
+              textTransform: 'uppercase' as const,
+              letterSpacing: '0.04em',
+            }}>
+              What you saw
+            </div>
+            {[
+              'Cases were assigned',
+              'Work was getting done',
+              'No complaints',
+              'Forms filed on time',
+              'Then she quit',
+            ].map((item, i) => (
+              <div key={i} style={{
+                fontSize: '0.8125rem',
+                color: '#e2e8f0',
+                padding: '6px 0',
+                borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                lineHeight: 1.4,
+              }}>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* The recognition line */}
+        <div style={{
+          textAlign: 'center' as const,
+          padding: '16px 20px',
+          maxWidth: 500,
+          margin: '0 auto',
+        }}>
+          <div style={{
+            fontSize: 'clamp(0.9375rem, 1.5vw, 1.0625rem)',
+            color: '#d1d5db',
+            lineHeight: 1.6,
+            fontStyle: 'italic',
+          }}>
+            It&apos;s not that she was a bad lawyer.<br/>
+            It&apos;s not that you&apos;re a bad mentor.<br/>
+            <span style={{ color: '#ffffff', fontWeight: 500, fontStyle: 'normal' }}>
+              There&apos;s just no system connecting your expertise to the people who need it.
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -848,6 +986,8 @@ const keyframes = `
     .demo-chat-stack { right: 12px !important; max-width: 260px !important; bottom: 110px !important; }
     .demo-container { padding: 36px 16px 160px !important; }
     .demo-narration-bar { padding: 16px 16px !important; }
+    .demo-thought-bubble { left: 12px !important; max-width: 240px !important; bottom: 110px !important; }
+    .demo-recognition-grid { grid-template-columns: 1fr !important; }
   }
 
   @media (min-width: 1200px) {

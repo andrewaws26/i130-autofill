@@ -7,6 +7,7 @@ export interface DemoEvent {
   phase: string;          // phase identifier
   title: string;          // short, punchy phase title
   narration: string;      // 1-2 sentences max
+  innerThought?: string;  // Maria's private thought - what the owner never heard
   chatMessage?: string;   // team chat message that slides in
   chatFrom?: string;      // who sent it
   interactive?: boolean;  // if true, pause until viewer taps
@@ -47,7 +48,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     time: 0,
     phase: 'calm',
     title: 'Last Monday',
-    narration: 'Everything looked fine. Cases were assigned. Work was getting done.',
+    narration: 'Last Monday morning. Cases assigned. Everyone seemed fine.',
     chatMessage: 'Good morning! Starting on the Gutierrez asylum case today.',
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
@@ -60,9 +61,10 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     time: 0,
     phase: 'first-sign',
     title: 'Tuesday',
-    narration: "Maria hit something she didn't understand. She didn't ask.",
+    narration: 'Maria opened the Gutierrez case. Step 4: Determine Concurrent Filing.',
+    innerThought: 'What does concurrent filing mean? I should know this. She\'ll think I\'m not qualified if I ask.',
     dashboardState: 'warning',
-    caseStatus: 'Maria has been on Step 4 for 2 days',
+    caseStatus: 'Maria has been on this step for 2 days. No questions asked.',
     interactive: true,
     interactivePrompt: 'What happened next',
   },
@@ -72,7 +74,8 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     time: 0,
     phase: 'escalation',
     title: 'Wednesday',
-    narration: 'She guessed. She got it wrong. Nobody noticed.',
+    narration: 'She couldn\'t find the answer. She made her best guess.',
+    innerThought: 'I think it\'s just the I-130. I\'ll file it and figure out the rest later. Please let this be right.',
     chatMessage: 'Filed the I-130 for Gutierrez. Moving to next case.',
     chatFrom: 'Maria Lopez',
     dashboardState: 'warning',
@@ -86,20 +89,32 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     time: 0,
     phase: 'crisis',
     title: 'Two Weeks Later',
-    narration: 'USCIS sent a Request for Evidence. The client is upset. You find out now.',
+    narration: 'USCIS rejected the approach. The client is calling. You\'re finding out for the first time.',
+    innerThought: 'I knew I should have asked. But I didn\'t know what I didn\'t know. I can\'t keep doing this.',
     dashboardState: 'crisis',
     chatMessage: 'Client called. Wants to know why USCIS is asking for more documents.',
     chatFrom: 'Front Desk',
     interactive: true,
+    interactivePrompt: 'Next',
+  },
+
+  // Phase 5b: RECOGNITION - the gap between two perspectives
+  {
+    time: 0,
+    phase: 'recognition',
+    title: '',
+    narration: '',
+    dashboardState: 'crisis',
+    interactive: true,
     interactivePrompt: 'See how Case Keeper prevents this',
   },
 
-  // Phase 7: BEFORE/AFTER - interactive so they can study both paths
+  // Phase 6: BEFORE/AFTER
   {
     time: 0,
     phase: 'before-after',
     title: 'Same scenario. Two outcomes.',
-    narration: 'Without Case Keeper, expertise stays trapped. With it, everyone has access.',
+    narration: '',
     showBefore: true,
     showAfter: true,
     interactive: true,
@@ -107,12 +122,13 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     dashboardState: 'warning',
   },
 
-  // Phase 8: RESOLUTION
+  // Phase 7: RESOLUTION
   {
     time: 0,
     phase: 'resolution',
     title: 'Tuesday, with Case Keeper',
-    narration: 'Maria hits the same confusing step. This time, the system is there.',
+    narration: 'Same Tuesday. Same confusing step. But this time, Maria isn\'t alone.',
+    innerThought: 'I don\'t understand this step. But I can see WHY it matters and there\'s a button to ask. Let me just ask.',
     chatMessage: 'Quick question on concurrent filing - does asylum status qualify?',
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
@@ -121,12 +137,12 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     interactivePrompt: 'See the result',
   },
 
-  // Phase 9: PAYOFF
+  // Phase 8: PAYOFF
   {
     time: 0,
     phase: 'payoff',
     title: 'The Result',
-    narration: 'Everything documented. Team guided. No manual training needed.',
+    narration: 'Your expertise captured. Your team guided. Without a single training session.',
     showDigest: true,
     showTraining: true,
     dashboardState: 'resolved',
