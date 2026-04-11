@@ -21,6 +21,7 @@ export interface DemoEvent {
   showTraining?: boolean;
   highlightField?: string;
   textThread?: { from: string; messages: string[]; }; // iMessage-style thread
+  recruitCost?: boolean; // Show the recruitment cost splash
 }
 
 export const DEMO_TIMELINE: DemoEvent[] = [
@@ -41,6 +42,18 @@ export const DEMO_TIMELINE: DemoEvent[] = [
         "Today is my last day. I'm sorry.",
       ],
     },
+  },
+
+  // Phase 1b: THE COST
+  {
+    time: 0,
+    phase: 'cost-splash',
+    title: '',
+    narration: '',
+    dashboardState: 'crisis',
+    recruitCost: true,
+    interactive: true,
+    interactivePrompt: 'Rewind to last Monday',
   },
 
   // Phase 2: CALM
@@ -94,6 +107,18 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     dashboardState: 'crisis',
     chatMessage: 'Client called. Wants to know why USCIS is asking for more documents.',
     chatFrom: 'Front Desk',
+    interactive: true,
+    interactivePrompt: 'Next',
+  },
+
+  // Phase: ATTUM'S LATE NIGHT
+  {
+    time: 0,
+    phase: 'late-night',
+    title: '11:47 PM',
+    narration: '',
+    dashboardState: 'crisis',
+    innerThought: undefined,
     interactive: true,
     interactivePrompt: 'Next',
   },

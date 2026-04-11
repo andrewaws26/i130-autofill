@@ -67,6 +67,7 @@ export default function InteractiveDemoPage() {
   const [costCounter, setCostCounter] = useState(0);
   const [roiAttorneys, setRoiAttorneys] = useState(3);
   const [roiHourlyRate, setRoiHourlyRate] = useState(250);
+  const [trainingProgress, setTrainingProgress] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const costIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -115,6 +116,24 @@ export default function InteractiveDemoPage() {
       if (costIntervalRef.current) clearInterval(costIntervalRef.current);
     };
   }, [currentPhase?.dashboardState]);
+
+  // ── Training progress animation for payoff phase ─────────────────────────
+  useEffect(() => {
+    if (currentPhase?.phase !== 'payoff') {
+      setTrainingProgress(0);
+      return;
+    }
+    let current = 0;
+    const interval = setInterval(() => {
+      current += 2;
+      if (current > 80) {
+        clearInterval(interval);
+        return;
+      }
+      setTrainingProgress(current);
+    }, 50);
+    return () => clearInterval(interval);
+  }, [currentPhase?.phase]);
 
   // ── Phase advance logic ──────────────────────────────────────────────────
   const advancePhase = useCallback(() => {
@@ -185,6 +204,7 @@ export default function InteractiveDemoPage() {
     setFadeIn(true);
     setBeforeAfterStage('before');
     setCostCounter(0);
+    setTrainingProgress(0);
     // First phase is interactive, so pause
     setTimeout(() => setWaitingForTap(true), 100);
   };
@@ -283,7 +303,7 @@ export default function InteractiveDemoPage() {
             transform: fadeIn ? 'translateY(0)' : 'translateY(12px)',
           }}
         >
-          {renderContent(currentPhase, beforeAfterStage, handleRestart, roiAttorneys, setRoiAttorneys, roiHourlyRate, setRoiHourlyRate)}
+          {renderContent(currentPhase, beforeAfterStage, handleRestart, roiAttorneys, setRoiAttorneys, roiHourlyRate, setRoiHourlyRate, trainingProgress)}
         </div>
 
         {/* Chat bubbles */}
@@ -401,6 +421,7 @@ function renderContent(
   setRoiAttorneys: (v: number) => void,
   roiHourlyRate: number,
   setRoiHourlyRate: (v: number) => void,
+  trainingProgress: number,
 ) {
   if (!phase) return null;
 
@@ -422,6 +443,27 @@ function renderContent(
           marginBottom: 8,
         }}>
           {phase.textThread.from}
+        </div>
+        {/* Typing indicator - appears before first message */}
+        <div style={{
+          alignSelf: 'flex-start',
+          padding: '10px 16px',
+          borderRadius: '18px 18px 18px 4px',
+          backgroundColor: '#e5e7eb',
+          animation: `fadeInUp 0.3s ease-out 0.3s both, typingFadeOut 0.3s ease-out 0.7s forwards`,
+          display: 'flex',
+          gap: 4,
+          alignItems: 'center',
+        }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              backgroundColor: '#9ca3af',
+              animation: `typingDot 1.2s ease-in-out ${i * 0.2}s infinite`,
+            }} />
+          ))}
         </div>
         {phase.textThread.messages.map((msg, i) => (
           <div
@@ -450,6 +492,96 @@ function renderContent(
           animation: `fadeInUp 0.4s ease-out ${0.8 + phase.textThread.messages.length * 1.2 + 0.5}s both`,
         }}>
           Third one this year.
+        </div>
+      </div>
+    );
+  }
+
+  // Cost splash - recruitment cost + ripple effect
+  if (phase.phase === 'cost-splash') {
+    return (
+      <div style={{ width: '100%', maxWidth: 600, margin: '0 auto' }}>
+        {/* Cost headline */}
+        <div style={{
+          textAlign: 'center' as const,
+          marginBottom: 28,
+        }}>
+          <div style={{
+            fontSize: 'clamp(2rem, 4vw, 3rem)',
+            fontWeight: 700,
+            color: '#ef4444',
+            fontFamily: '"Source Serif 4", serif',
+            animation: 'fadeInUp 0.5s ease-out both',
+          }}>
+            $147,000
+          </div>
+          <div style={{
+            fontSize: '0.9375rem',
+            color: '#9ca3af',
+            marginTop: 4,
+            animation: 'fadeInUp 0.5s ease-out 0.2s both',
+          }}>
+            Average cost to replace an associate attorney
+          </div>
+        </div>
+
+        {/* Ripple effect - Maria's cases */}
+        <div style={{
+          backgroundColor: 'rgba(155,44,44,0.08)',
+          border: '1px solid rgba(155,44,44,0.2)',
+          borderRadius: 10,
+          padding: '20px',
+          animation: 'fadeInUp 0.5s ease-out 0.4s both',
+        }}>
+          <div style={{
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            color: '#ef4444',
+            marginBottom: 12,
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.04em',
+          }}>
+            Maria&apos;s caseload now needs coverage
+          </div>
+          {[
+            { text: '8 active cases need reassignment', urgent: false },
+            { text: '3 deadlines this week - no one assigned', urgent: true },
+            { text: '2 clients need to be notified their attorney left', urgent: false },
+            { text: 'Remaining associate is now at 2x capacity', urgent: true },
+            { text: '14 months until a replacement is productive', urgent: false },
+          ].map((item, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '8px 0',
+              borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              fontSize: '0.875rem',
+              color: item.urgent ? '#ef4444' : '#e2e8f0',
+              fontWeight: item.urgent ? 500 : 400,
+              animation: `fadeInUp 0.4s ease-out ${0.6 + i * 0.15}s both`,
+            }}>
+              <div style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                backgroundColor: item.urgent ? '#ef4444' : '#6b7280',
+                flexShrink: 0,
+              }} />
+              {item.text}
+            </div>
+          ))}
+        </div>
+
+        {/* Third time stat */}
+        <div style={{
+          textAlign: 'center' as const,
+          marginTop: 20,
+          fontSize: '0.875rem',
+          color: '#9ca3af',
+          animation: 'fadeInUp 0.5s ease-out 1.5s both',
+        }}>
+          This is the third time this year.
         </div>
       </div>
     );
@@ -556,6 +688,24 @@ function renderContent(
                 {item}
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* The "you already know" line */}
+        <div style={{
+          textAlign: 'center' as const,
+          padding: '12px 20px 0',
+          maxWidth: 500,
+          margin: '0 auto',
+        }}>
+          <div style={{
+            fontSize: '0.9375rem',
+            color: '#e2e8f0',
+            lineHeight: 1.6,
+            marginBottom: 16,
+          }}>
+            You know what concurrent filing is. You could explain it in 30 seconds.<br/>
+            Maria needed those 30 seconds. She never got them.
           </div>
         </div>
 
@@ -694,6 +844,102 @@ function renderContent(
             </div>
           </div>
         </div>
+        {/* Human cost */}
+        <div style={{
+          marginTop: 16,
+          padding: '14px 18px',
+          borderRadius: 8,
+          backgroundColor: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          fontSize: '0.8125rem',
+          color: '#9ca3af',
+          lineHeight: 1.5,
+          fontStyle: 'italic',
+          animation: 'fadeInUp 0.5s ease-out 0.3s both',
+        }}>
+          The Gutierrez family left Guatemala three years ago. They are counting on this petition. It just got delayed by six months because of a preventable mistake.
+        </div>
+      </div>
+    );
+  }
+
+  // Attum's late night
+  if (phase.phase === 'late-night') {
+    return (
+      <div style={{
+        width: '100%',
+        maxWidth: 480,
+        margin: '0 auto',
+        textAlign: 'center' as const,
+      }}>
+        {/* Time display */}
+        <div style={{
+          fontSize: '0.8125rem',
+          color: '#6b7280',
+          marginBottom: 24,
+          letterSpacing: '0.05em',
+          animation: 'fadeInUp 0.4s ease-out both',
+        }}>
+          Three weeks after the RFE
+        </div>
+
+        {/* Attum's desk scene */}
+        <div style={{
+          backgroundColor: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 12,
+          padding: '28px 24px',
+          animation: 'fadeInUp 0.5s ease-out 0.3s both',
+        }}>
+          <div style={{
+            fontSize: '0.75rem',
+            color: '#6b7280',
+            textTransform: 'uppercase' as const,
+            letterSpacing: '0.05em',
+            marginBottom: 16,
+          }}>
+            Attorney Attum&apos;s office
+          </div>
+
+          {/* What she's doing */}
+          <div style={{
+            fontSize: '0.9375rem',
+            color: '#d1d5db',
+            lineHeight: 1.6,
+            marginBottom: 20,
+          }}>
+            Redoing the Gutierrez filing.<br/>
+            Responding to the RFE she didn&apos;t know about.<br/>
+            Covering Maria&apos;s other 7 cases.
+          </div>
+
+          {/* Her thought */}
+          <div style={{
+            padding: '16px 20px',
+            borderRadius: 8,
+            backgroundColor: 'rgba(255,255,255,0.03)',
+            borderLeft: '3px solid #b8860b',
+            fontSize: '0.9375rem',
+            color: '#e2e8f0',
+            fontStyle: 'italic',
+            lineHeight: 1.5,
+            textAlign: 'left' as const,
+            animation: 'fadeInUp 0.5s ease-out 0.8s both',
+          }}>
+            &ldquo;Why do they keep leaving? I give them good cases. I pay them well. What am I doing wrong?&rdquo;
+          </div>
+        </div>
+
+        {/* The answer she can't see */}
+        <div style={{
+          marginTop: 20,
+          fontSize: '0.875rem',
+          color: '#6b7280',
+          fontStyle: 'italic',
+          animation: 'fadeInUp 0.5s ease-out 1.2s both',
+        }}>
+          Nothing. There&apos;s just no system.
+        </div>
       </div>
     );
   }
@@ -818,6 +1064,60 @@ function renderContent(
             <DigestRow label="Maria Lopez" detail="Completed Gutierrez filing, started Nguyen I-130" />
             <DigestRow label="James Park" detail="3 cases reviewed, 1 deadline tomorrow" />
             <DigestRow label="Training" detail="Maria: 80% immigration, James: 65% family" />
+          </div>
+        </div>
+
+        {/* Training progress montage */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: 10,
+          padding: '20px 24px',
+          marginTop: 14,
+          border: '1px solid #d8d8d8',
+          animation: 'fadeInUp 0.5s ease-out 0.3s both',
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 8,
+          }}>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#2c3e50' }}>
+              Maria Lopez - Immigration Training
+            </span>
+            <span style={{
+              fontSize: '1rem',
+              fontWeight: 700,
+              color: '#2d6a4f',
+              fontFamily: '"Source Serif 4", serif',
+            }}>
+              {trainingProgress}%
+            </span>
+          </div>
+          <div style={{
+            height: 8,
+            backgroundColor: '#e8e8e8',
+            borderRadius: 4,
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${trainingProgress}%`,
+              backgroundColor: '#2d6a4f',
+              borderRadius: 4,
+              transition: 'width 0.1s linear',
+            }} />
+          </div>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: 8,
+            fontSize: '0.7rem',
+            color: '#9ca3af',
+          }}>
+            <span>Week 1</span>
+            <span>Month 3</span>
+            <span>Month 6</span>
           </div>
         </div>
       </div>
@@ -976,6 +1276,16 @@ const keyframes = `
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes typingDot {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  @keyframes typingFadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; height: 0; padding: 0; margin: 0; overflow: hidden; }
   }
 
   /* Responsive: mobile gets 2-col grids, desktop gets 4 */
