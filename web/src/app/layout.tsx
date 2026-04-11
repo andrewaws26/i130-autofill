@@ -28,6 +28,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="light"
+      style={{ colorScheme: 'light' }}
       className={`${dmSans.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" style={{ fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif" }}>
