@@ -507,6 +507,16 @@ export async function POST(request: Request) {
       console.warn('Extraction validation issues:', validationIssues);
     }
 
+    // Validate that the extraction found actual intake data
+    const pet = data.petitioner || {};
+    const hasUsableData = pet.family_name || pet.given_name || pet.date_of_birth || pet.ssn;
+    if (!hasUsableData) {
+      return Response.json(
+        { error: 'This document does not appear to be an I-130 intake form. No petitioner information could be extracted. Please upload the correct form.' },
+        { status: 422 }
+      );
+    }
+
     // Audit log (no PII - only metadata)
     console.log(JSON.stringify({
       event: 'i130_extract',
