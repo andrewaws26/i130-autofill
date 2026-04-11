@@ -69,7 +69,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     chatFrom: 'Maria Lopez',
     dashboardState: 'normal',
     interactive: true,
-    interactivePrompt: 'Next',
+    interactivePrompt: 'Then, Tuesday',
   },
 
   // Phase 3: FIRST SIGN
@@ -99,7 +99,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     dashboardState: 'warning',
     highlightField: 'She filed I-130 only. Should have filed I-485 concurrently.',
     interactive: true,
-    interactivePrompt: 'Next',
+    interactivePrompt: 'Two weeks later',
   },
 
   // Phase 5: CRISIS
@@ -114,7 +114,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     chatMessage: 'Client called. Wants to know why USCIS is asking for more documents.',
     chatFrom: 'Front Desk',
     interactive: true,
-    interactivePrompt: 'Next',
+    interactivePrompt: 'That night',
   },
 
   // Phase: ATTUM'S LATE NIGHT
@@ -127,7 +127,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     bgImage: '/demo-images/06-attum-late-night.jpg',
     innerThought: undefined,
     interactive: true,
-    interactivePrompt: 'Next',
+    interactivePrompt: 'What nobody saw',
   },
 
   // Phase 5b: RECOGNITION - the gap between two perspectives
@@ -191,7 +191,6 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: '',
     narration: '',
     dashboardState: 'resolved',
-    bgImage: '/demo-images/09-maria-returns-phone.jpg',
     chatMessage: "Hey - I heard about the new system. James and I have been talking... would you consider bringing us back?",
     chatFrom: 'Maria Lopez',
     interactive: true,

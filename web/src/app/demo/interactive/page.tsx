@@ -217,8 +217,8 @@ export default function InteractiveDemoPage() {
 
   // ── Visible chats - only show recent ones relevant to current narrative ──
   const visibleChats = chatHistory
-    .filter((c) => c.phaseIndex >= phaseIndex - 2 && c.phaseIndex <= phaseIndex)
-    .slice(-3);
+    .filter((c) => c.phaseIndex === phaseIndex)
+    .slice(-2);
 
   return (
     <div style={styles.wrapper}>
@@ -420,7 +420,7 @@ export default function InteractiveDemoPage() {
       {waitingForTap && currentPhase?.interactive && (
         <div style={{
           position: 'fixed',
-          bottom: currentPhase.narration ? 100 : 40,
+          bottom: currentPhase.narration ? 110 : 50,
           left: 0,
           right: 0,
           display: 'flex',
@@ -1152,18 +1152,6 @@ function renderContent(
           ))}
         </div>
 
-        {/* Morning digest */}
-        <div style={{ ...styles.singleCard, marginTop: 16 }}>
-          <div style={styles.cardHeader}>
-            <span style={styles.cardHeaderLabel}>Morning Digest</span>
-          </div>
-          <div style={{ padding: '12px 20px' }}>
-            <DigestRow label="Maria Lopez" detail="Completed Gutierrez filing, started Nguyen I-130" />
-            <DigestRow label="James Park" detail="3 cases reviewed, 1 deadline tomorrow" />
-            <DigestRow label="Training" detail="Maria: 80% immigration, James: 65% family" />
-          </div>
-        </div>
-
         {/* Training progress montage */}
         <div style={{
           backgroundColor: '#ffffff',
@@ -1231,8 +1219,6 @@ function renderContent(
             AI-Powered Training Modules
           </div>
           {[
-            { name: 'I-130 Spousal Petition Process', score: '94%', done: true },
-            { name: 'Evidence Requirements', score: '88%', done: true },
             { name: 'Concurrent Filing Strategy', score: '91%', done: true },
             { name: 'Responding to RFEs', score: '90%', done: true },
             { name: 'Asylum Law Fundamentals', score: '', done: false },
@@ -1242,7 +1228,7 @@ function renderContent(
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '6px 0',
-              borderBottom: i < 4 ? '1px solid #f0f0f0' : 'none',
+              borderBottom: i < 2 ? '1px solid #f0f0f0' : 'none',
               fontSize: '0.8125rem',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1486,7 +1472,7 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     maxWidth: 900,
     margin: '0 auto',
-    padding: '48px 24px 180px',
+    padding: '48px 24px 220px',
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
