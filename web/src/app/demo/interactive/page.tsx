@@ -404,12 +404,21 @@ export default function InteractiveDemoPage() {
         </div>
       )}
 
-      {/* Interactive overlay */}
+      {/* Interactive CTA - inline below content, not a blocking overlay */}
       {waitingForTap && currentPhase?.interactive && (
-        <div style={styles.overlay} onClick={handleTap}>
+        <div style={{
+          position: 'fixed',
+          bottom: currentPhase.narration ? 100 : 40,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          zIndex: 60,
+          pointerEvents: 'none',
+        }}>
           <button
             onClick={handleTap}
-            style={styles.ctaButton}
+            style={{ ...styles.ctaButton, pointerEvents: 'auto' }}
           >
             {currentPhase?.interactivePrompt ?? 'Continue'}
           </button>
