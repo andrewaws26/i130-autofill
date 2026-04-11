@@ -231,7 +231,7 @@ export default function InteractiveDemoPage() {
             backgroundImage: `url(${currentPhase.bgImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            opacity: fadeIn ? 0.15 : 0,
+            opacity: fadeIn ? 0.1 : 0,
             transition: 'opacity 0.8s ease',
             pointerEvents: 'none',
           }}

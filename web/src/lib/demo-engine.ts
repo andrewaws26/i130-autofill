@@ -35,7 +35,6 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     interactive: true,
     interactivePrompt: 'See what went wrong',
     dashboardState: 'normal',
-    bgImage: '/demo-images/01-hook-phone.jpg',
     textThread: {
       from: 'Maria Lopez',
       messages: [
