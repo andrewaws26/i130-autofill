@@ -40,6 +40,7 @@ export const DEMO_TIMELINE: DemoEvent[] = [
         "Hi, I've been thinking about this for a while...",
         "I don't think this is the right fit for me.",
         "Today is my last day. I'm sorry.",
+        "Also... James asked me not to say anything, but he's looking too.",
       ],
     },
   },
@@ -182,10 +183,10 @@ export const DEMO_TIMELINE: DemoEvent[] = [
     title: '',
     narration: '',
     dashboardState: 'resolved',
-    chatMessage: "Hey - I heard about the new system you set up. Would you consider bringing me back?",
+    chatMessage: "Hey - I heard about the new system. James and I have been talking... would you consider bringing us back?",
     chatFrom: 'Maria Lopez',
     interactive: true,
-    interactivePrompt: "Don't lose another Maria",
+    interactivePrompt: "Don't lose another one",
   },
 
   // Phase: CLOSE

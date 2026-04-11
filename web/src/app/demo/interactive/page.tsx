@@ -52,7 +52,7 @@ const WORKFLOW_STEPS = [
 // ─── Payoff stats ───────────────────────────────────────────────────────────
 const PAYOFF_STATS = [
   { value: '0', label: 'RFEs this quarter', color: '#2d6a4f' },
-  { value: '8 mo', label: 'Maria Lopez retained', color: '#b8860b' },
+  { value: '2/2', label: 'Associates retained', color: '#b8860b' },
   { value: '80%', label: 'Immigration training complete', color: '#2563eb' },
   { value: '12', label: 'Insights captured', color: '#7c3aed' },
 ];
@@ -513,7 +513,7 @@ function renderContent(
             fontFamily: '"Source Serif 4", serif',
             animation: 'fadeInUp 0.5s ease-out both',
           }}>
-            $147,000
+            $294,000
           </div>
           <div style={{
             fontSize: '0.9375rem',
@@ -521,11 +521,11 @@ function renderContent(
             marginTop: 4,
             animation: 'fadeInUp 0.5s ease-out 0.2s both',
           }}>
-            Average cost to replace an associate attorney
+            Cost to replace two associate attorneys
           </div>
         </div>
 
-        {/* Ripple effect - Maria's cases */}
+        {/* Ripple effect */}
         <div style={{
           backgroundColor: 'rgba(155,44,44,0.08)',
           border: '1px solid rgba(155,44,44,0.2)',
@@ -541,21 +541,22 @@ function renderContent(
             textTransform: 'uppercase' as const,
             letterSpacing: '0.04em',
           }}>
-            Maria&apos;s caseload now needs coverage
+            In a small firm, one person leaving is a crisis. Two is a collapse.
           </div>
           {[
-            { text: '8 active cases need reassignment', urgent: false },
-            { text: '3 deadlines this week - no one assigned', urgent: true },
-            { text: '2 clients need to be notified their attorney left', urgent: false },
-            { text: 'Remaining associate is now at 2x capacity', urgent: true },
-            { text: '14 months until a replacement is productive', urgent: false },
+            { text: '15 active cases between them - all need coverage', urgent: true },
+            { text: '5 court deadlines this month with no one assigned', urgent: true },
+            { text: 'Clients need to be told their attorney left', urgent: false },
+            { text: 'You are now the only attorney handling everything', urgent: true },
+            { text: '14 months before replacements are productive', urgent: false },
+            { text: 'If they were both unhappy, who else is?', urgent: false },
           ].map((item, i) => (
             <div key={i} style={{
               display: 'flex',
               alignItems: 'center',
               gap: 10,
               padding: '8px 0',
-              borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              borderBottom: i < 5 ? '1px solid rgba(255,255,255,0.05)' : 'none',
               fontSize: '0.875rem',
               color: item.urgent ? '#ef4444' : '#e2e8f0',
               fontWeight: item.urgent ? 500 : 400,
@@ -573,15 +574,15 @@ function renderContent(
           ))}
         </div>
 
-        {/* Third time stat */}
+        {/* The real question */}
         <div style={{
           textAlign: 'center' as const,
           marginTop: 20,
-          fontSize: '0.875rem',
-          color: '#9ca3af',
           animation: 'fadeInUp 0.5s ease-out 1.5s both',
         }}>
-          This is the third time this year.
+          <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+            People don&apos;t quit jobs they can&apos;t afford to lose unless something is really wrong.
+          </div>
         </div>
       </div>
     );
@@ -908,9 +909,10 @@ function renderContent(
             lineHeight: 1.6,
             marginBottom: 20,
           }}>
-            Redoing the Gutierrez filing.<br/>
+            Redoing the Gutierrez filing alone.<br/>
             Responding to the RFE she didn&apos;t know about.<br/>
-            Covering Maria&apos;s other 7 cases.
+            Covering 15 cases that used to belong to two people.<br/>
+            Wondering if this is sustainable.
           </div>
 
           {/* Her thought */}
