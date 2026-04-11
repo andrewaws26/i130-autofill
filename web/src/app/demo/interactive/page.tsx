@@ -215,11 +215,23 @@ export default function InteractiveDemoPage() {
   // ── Status indicator ─────────────────────────────────────────────────────
   const status = STATUS_CONFIG[currentPhase?.dashboardState ?? 'normal'];
 
-  // ── Visible chats (last 4) ───────────────────────────────────────────────
-  const visibleChats = chatHistory.slice(-4);
+  // ── Visible chats - only show recent ones relevant to current narrative ──
+  const visibleChats = chatHistory
+    .filter((c) => c.phaseIndex >= phaseIndex - 2 && c.phaseIndex <= phaseIndex)
+    .slice(-3);
 
   return (
     <div style={styles.wrapper}>
+      {/* Hide parent layout header and demo banner for immersive experience */}
+      <style>{`
+        body > header, body > main > div > div:first-child,
+        header.fixed, [class*="DEMO MODE"] {
+          display: none !important;
+        }
+        body > main {
+          padding-top: 0 !important;
+        }
+      `}</style>
       {/* Background illustration */}
       {currentPhase?.bgImage && (
         <div
@@ -1203,6 +1215,58 @@ function renderContent(
             <span>Week 1</span>
             <span>Month 3</span>
             <span>Month 6</span>
+          </div>
+        </div>
+
+        {/* Onboarding modules preview */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: 10,
+          padding: '20px 24px',
+          marginTop: 14,
+          border: '1px solid #d8d8d8',
+          animation: 'fadeInUp 0.5s ease-out 0.5s both',
+        }}>
+          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#2c3e50', marginBottom: 12 }}>
+            AI-Powered Training Modules
+          </div>
+          {[
+            { name: 'I-130 Spousal Petition Process', score: '94%', done: true },
+            { name: 'Evidence Requirements', score: '88%', done: true },
+            { name: 'Concurrent Filing Strategy', score: '91%', done: true },
+            { name: 'Responding to RFEs', score: '90%', done: true },
+            { name: 'Asylum Law Fundamentals', score: '', done: false },
+          ].map((mod, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '6px 0',
+              borderBottom: i < 4 ? '1px solid #f0f0f0' : 'none',
+              fontSize: '0.8125rem',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  backgroundColor: mod.done ? '#2d6a4f' : '#e8e8e8',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                }}>{mod.done ? 'v' : ''}</div>
+                <span style={{ color: mod.done ? '#32373c' : '#9ca3af' }}>{mod.name}</span>
+              </div>
+              {mod.score && (
+                <span style={{ color: '#2d6a4f', fontWeight: 600 }}>{mod.score}</span>
+              )}
+            </div>
+          ))}
+          <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 10, fontStyle: 'italic' }}>
+            Interactive lessons with quizzes, case simulations, and insights from senior attorneys.
           </div>
         </div>
       </div>
