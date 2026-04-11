@@ -108,15 +108,48 @@ export default function DemoBillingPage() {
         ))}
       </div>
 
-      {/* Invoices Table */}
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-3">
+        {invoices.map((inv) => {
+          const client = getClient(inv.client_id);
+          return (
+            <div
+              key={inv.id}
+              className="rounded-lg p-4"
+              style={{
+                background: 'var(--card-bg)',
+                border: '1px solid var(--border-light)',
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-sm" style={{ color: 'var(--heading)' }}>
+                  {inv.invoice_number}
+                </span>
+                <Badge label={inv.status} color={STATUS_COLORS[inv.status]} />
+              </div>
+              <div className="text-sm mb-2" style={{ color: 'var(--foreground)' }}>
+                {client ? `${client.first_name} ${client.last_name}` : '--'}
+              </div>
+              <div className="text-xl font-bold mb-2" style={{ color: 'var(--heading)' }}>
+                {formatCurrency(inv.total)}
+              </div>
+              <div className="text-xs" style={{ color: 'var(--muted)' }}>
+                Due {formatDate(inv.due_date)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Invoices Table (desktop) */}
       <div
-        className="rounded-lg overflow-x-auto"
+        className="hidden md:block rounded-lg overflow-x-auto"
         style={{
           background: 'var(--card-bg)',
           border: '1px solid var(--border-light)',
         }}
       >
-        <table className="w-full text-sm" style={{ minWidth: 900 }}>
+        <table className="w-full text-sm">
           <thead>
             <tr
               style={{

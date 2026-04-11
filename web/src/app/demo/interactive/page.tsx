@@ -46,15 +46,11 @@ export default function InteractiveDemoPage() {
   const [roiAttorneys, setRoiAttorneys] = useState(3);
   const [roiHourlyRate, setRoiHourlyRate] = useState(250);
   const [trainingProgress, setTrainingProgress] = useState(0);
-  const [reduceMotion, setReduceMotion] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const costIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const currentPhase = DEMO_TIMELINE[phaseIndex];
   const totalPhases = DEMO_TIMELINE.length;
-
-  // Animation helper - returns 'none' when reduce motion is on
-  const anim = (animation: string) => reduceMotion ? 'none' : animation;
 
   // ── Accumulate chat messages ─────────────────────────────────────────────
   useEffect(() => {
@@ -71,27 +67,22 @@ export default function InteractiveDemoPage() {
     }
   }, [phaseIndex, currentPhase]);
 
-  // ── Cost clock (slower when reduce motion) ──────────────────────────────
+  // ── Cost clock ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (costIntervalRef.current) clearInterval(costIntervalRef.current);
     const state = currentPhase?.dashboardState;
     if (state === 'warning' || state === 'crisis') {
-      const interval = reduceMotion ? 5000 : 1000;
       costIntervalRef.current = setInterval(() => {
-        setCostCounter(prev => prev + (reduceMotion ? 1250 : 250));
-      }, interval);
+        setCostCounter(prev => prev + 250);
+      }, 1000);
     }
     return () => { if (costIntervalRef.current) clearInterval(costIntervalRef.current); };
-  }, [currentPhase?.dashboardState, reduceMotion]);
+  }, [currentPhase?.dashboardState]);
 
   // ── Training progress animation ─────────────────────────────────────────
   useEffect(() => {
     if (currentPhase?.phase !== 'the-result') {
       setTrainingProgress(0);
-      return;
-    }
-    if (reduceMotion) {
-      setTrainingProgress(80);
       return;
     }
     let current = 0;
@@ -101,7 +92,7 @@ export default function InteractiveDemoPage() {
       setTrainingProgress(current);
     }, 50);
     return () => clearInterval(interval);
-  }, [currentPhase?.phase, reduceMotion]);
+  }, [currentPhase?.phase]);
 
   // ── Auto-advance timer ───────────────────────────────────────────────────
   useEffect(() => {
@@ -113,7 +104,7 @@ export default function InteractiveDemoPage() {
     const delay = Math.max(nextPhase.time * 1000, 600);
     timerRef.current = setTimeout(() => {
       setFadeIn(false);
-      setTimeout(() => { setPhaseIndex(phaseIndex + 1); setFadeIn(true); }, reduceMotion ? 0 : 400);
+      setTimeout(() => { setPhaseIndex(phaseIndex + 1); setFadeIn(true); }, 400);
     }, delay);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,12 +114,8 @@ export default function InteractiveDemoPage() {
   const handleTap = () => {
     if (!waitingForTap) return;
     setWaitingForTap(false);
-    if (reduceMotion) {
-      setPhaseIndex((prev) => prev + 1);
-    } else {
-      setFadeIn(false);
-      setTimeout(() => { setPhaseIndex((prev) => prev + 1); setFadeIn(true); }, 400);
-    }
+    setFadeIn(false);
+    setTimeout(() => { setPhaseIndex((prev) => prev + 1); setFadeIn(true); }, 400);
   };
 
   // ── Restart ──────────────────────────────────────────────────────────────
@@ -154,7 +141,7 @@ export default function InteractiveDemoPage() {
     phaseIndex <= 7 ? 'WHAT HAPPENED' :
     'THE SOLUTION';
 
-  const transitionStyle = reduceMotion ? {} : {
+  const transitionStyle = {
     opacity: fadeIn ? 1 : 0,
     transform: fadeIn ? 'translateY(0)' : 'translateY(8px)',
     transition: 'opacity 0.4s ease, transform 0.4s ease',
@@ -168,8 +155,8 @@ export default function InteractiveDemoPage() {
         main { padding-top: 0 !important; }
       `}</style>
 
-      {/* Background illustration - static when reduce motion */}
-      {currentPhase?.bgImage && !reduceMotion && (
+      {/* Background illustration */}
+      {currentPhase?.bgImage && (
         <div key={currentPhase.bgImage} style={{
           position: 'fixed', inset: 0, zIndex: 0,
           backgroundImage: `url(${currentPhase.bgImage})`,
@@ -187,21 +174,11 @@ export default function InteractiveDemoPage() {
 
         {/* Top controls row */}
         <div style={styles.topControls}>
-          {/* Left: Restart + Reduce Motion */}
+          {/* Left: Restart */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {phaseIndex > 0 && (
               <button onClick={handleRestart} style={styles.topButton}>Restart</button>
             )}
-            <button
-              onClick={() => setReduceMotion(!reduceMotion)}
-              style={{
-                ...styles.topButton,
-                backgroundColor: reduceMotion ? 'rgba(184,134,11,0.2)' : 'rgba(255,255,255,0.06)',
-                borderColor: reduceMotion ? 'rgba(184,134,11,0.4)' : 'rgba(255,255,255,0.1)',
-              }}
-            >
-              {reduceMotion ? 'Motion: off' : 'Reduce motion'}
-            </button>
           </div>
 
           {/* Center: Screen counter */}
@@ -249,14 +226,14 @@ export default function InteractiveDemoPage() {
 
         {/* 4. CONTENT BLOCK - the main visual */}
         <div style={{ ...styles.contentArea, ...transitionStyle }}>
-          {renderContent(phase(currentPhase), anim, handleRestart, roiAttorneys, setRoiAttorneys, roiHourlyRate, setRoiHourlyRate, trainingProgress)}
+          {renderContent(phase(currentPhase), handleRestart, roiAttorneys, setRoiAttorneys, roiHourlyRate, setRoiHourlyRate, trainingProgress)}
         </div>
 
         {/* 5. THOUGHT BUBBLE - Maria's inner thought (inline) */}
         {currentPhase?.innerThought && (
           <div style={{
             ...styles.thoughtBubble,
-            animation: anim('fadeInUp 0.5s ease-out 0.3s both'),
+            animation: 'fadeInUp 0.5s ease-out 0.3s both',
           }}>
             <div style={styles.thoughtLabel}>What Maria was thinking</div>
             <div style={styles.thoughtText}>
@@ -271,7 +248,7 @@ export default function InteractiveDemoPage() {
             {visibleChats.map((chat, i) => (
               <div key={`${chat.phaseIndex}-${chat.from}`} style={{
                 ...styles.chatBubble,
-                animation: anim('slideInChat 0.4s ease-out'),
+                animation: 'slideInChat 0.4s ease-out',
               }}>
                 <div style={styles.chatAvatar}>{chat.from.charAt(0).toUpperCase()}</div>
                 <div style={styles.chatContent}>
@@ -298,7 +275,7 @@ export default function InteractiveDemoPage() {
           <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 32px' }}>
             <button onClick={handleTap} style={{
               ...styles.ctaButton,
-              animation: reduceMotion ? 'none' : 'ctaPulse 2.5s ease-in-out infinite',
+              animation: 'ctaPulse 2.5s ease-in-out infinite',
             }}>
               {currentPhase?.interactivePrompt ?? 'Continue'}
             </button>
@@ -318,7 +295,6 @@ function phase(p: DemoEvent | undefined): DemoEvent | undefined { return p; }
 // ─── Content renderer (one idea per screen) ─────────────────────────────────
 function renderContent(
   phase: DemoEvent | undefined,
-  anim: (a: string) => string,
   onRestart: () => void,
   roiAttorneys: number,
   setRoiAttorneys: (v: number) => void,
@@ -340,7 +316,7 @@ function renderContent(
           marginBottom: 24,
           lineHeight: 1.4,
           textAlign: 'center' as const,
-          animation: anim('fadeInUp 0.5s ease-out 0.2s both'),
+          animation: 'fadeInUp 0.5s ease-out 0.2s both',
         }}>
           Imagine you own a small law firm.
         </div>
@@ -351,7 +327,7 @@ function renderContent(
           borderRadius: 12,
           padding: '24px 20px',
           textAlign: 'left' as const,
-          animation: anim('fadeInUp 0.5s ease-out 0.4s both'),
+          animation: 'fadeInUp 0.5s ease-out 0.4s both',
         }}>
           <div style={{ fontSize: '1rem', color: '#e2e8f0', lineHeight: 1.8 }}>
             <div style={{ marginBottom: 16 }}>
@@ -407,13 +383,13 @@ function renderContent(
             <div style={{
               alignSelf: 'flex-start', padding: '10px 16px',
               borderRadius: '18px 18px 18px 4px', backgroundColor: '#3a3a3c',
-              animation: anim('fadeInUp 0.3s ease-out 0.3s both, typingFadeOut 0.3s ease-out 0.7s forwards'),
+              animation: 'fadeInUp 0.3s ease-out 0.3s both, typingFadeOut 0.3s ease-out 0.7s forwards',
               display: 'flex', gap: 4, alignItems: 'center',
             }}>
               {[0, 1, 2].map(i => (
                 <div key={i} style={{
                   width: 7, height: 7, borderRadius: '50%', backgroundColor: '#8e8e93',
-                  animation: anim(`typingDot 1.2s ease-in-out ${i * 0.2}s infinite`),
+                  animation: `typingDot 1.2s ease-in-out ${i * 0.2}s infinite`,
                 }} />
               ))}
             </div>
@@ -422,7 +398,7 @@ function renderContent(
                 alignSelf: 'flex-start', maxWidth: '82%', padding: '10px 14px',
                 borderRadius: '18px 18px 18px 4px', backgroundColor: '#3a3a3c',
                 color: '#ffffff', fontSize: '0.9375rem', lineHeight: 1.4,
-                animation: anim(`fadeInUp 0.4s ease-out ${0.8 + i * 1.2}s both`),
+                animation: `fadeInUp 0.4s ease-out ${0.8 + i * 1.2}s both`,
               }}>
                 {msg}
               </div>
@@ -441,13 +417,13 @@ function renderContent(
           <div style={{
             fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, color: '#ef4444',
             fontFamily: '"Source Serif 4", serif',
-            animation: anim('fadeInUp 0.5s ease-out both'),
+            animation: 'fadeInUp 0.5s ease-out both',
           }}>
             $294,000
           </div>
           <div style={{
             fontSize: '0.9375rem', color: '#9ca3af', marginTop: 4,
-            animation: anim('fadeInUp 0.5s ease-out 0.2s both'),
+            animation: 'fadeInUp 0.5s ease-out 0.2s both',
           }}>
             Cost to replace two associate attorneys
           </div>
@@ -456,7 +432,7 @@ function renderContent(
         <div style={{
           backgroundColor: 'rgba(155,44,44,0.08)', border: '1px solid rgba(155,44,44,0.2)',
           borderRadius: 10, padding: '20px',
-          animation: anim('fadeInUp 0.5s ease-out 0.4s both'),
+          animation: 'fadeInUp 0.5s ease-out 0.4s both',
         }}>
           <div style={{
             fontSize: '0.8125rem', fontWeight: 600, color: '#ef4444', marginBottom: 12,
@@ -478,7 +454,7 @@ function renderContent(
               fontSize: '0.875rem',
               color: item.urgent ? '#ef4444' : '#e2e8f0',
               fontWeight: item.urgent ? 500 : 400,
-              animation: anim(`fadeInUp 0.4s ease-out ${0.6 + i * 0.12}s both`),
+              animation: `fadeInUp 0.4s ease-out ${0.6 + i * 0.12}s both`,
             }}>
               <div style={{
                 width: 6, height: 6, borderRadius: '50%',
@@ -549,7 +525,7 @@ function renderContent(
           textAlign: 'center' as const, marginTop: 16, padding: '14px 16px',
           borderRadius: 8, backgroundColor: 'rgba(155,44,44,0.06)',
           border: '1px solid rgba(155,44,44,0.15)',
-          animation: anim('fadeInUp 0.5s ease-out 0.5s both'),
+          animation: 'fadeInUp 0.5s ease-out 0.5s both',
         }}>
           <div style={{ fontSize: '0.9375rem', color: '#e2e8f0', lineHeight: 1.7 }}>
             She didn&apos;t ask <strong style={{ color: '#ef4444' }}>because</strong> she was afraid to look incompetent.<br/>
@@ -587,7 +563,7 @@ function renderContent(
         <div style={{
           marginTop: 16, padding: '16px 20px', borderRadius: 8,
           backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-          animation: anim('fadeInUp 0.5s ease-out 0.3s both'),
+          animation: 'fadeInUp 0.5s ease-out 0.3s both',
         }}>
           <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#ef4444', marginBottom: 8, textTransform: 'uppercase' as const }}>
             What happened next
@@ -651,7 +627,7 @@ function renderContent(
           fontWeight: 600,
           lineHeight: 1.5,
           fontFamily: '"Source Serif 4", serif',
-          animation: anim('fadeInUp 0.6s ease-out 0.3s both'),
+          animation: 'fadeInUp 0.6s ease-out 0.3s both',
         }}>
           There is no system connecting<br/>
           what you know to the people<br/>
@@ -659,7 +635,7 @@ function renderContent(
         </div>
         <div style={{
           marginTop: 32, fontSize: '0.9375rem', color: '#9ca3af', lineHeight: 1.6,
-          animation: anim('fadeInUp 0.6s ease-out 0.6s both'),
+          animation: 'fadeInUp 0.6s ease-out 0.6s both',
         }}>
           You could answer her question in 30 seconds.<br/>
           She just needed a way to ask.
@@ -725,7 +701,7 @@ function renderContent(
         <div style={{
           backgroundColor: '#ffffff', borderRadius: 12, padding: '20px',
           marginTop: 14, border: '1px solid #d8d8d8',
-          animation: anim('fadeInUp 0.5s ease-out 0.5s both'),
+          animation: 'fadeInUp 0.5s ease-out 0.5s both',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
             <div style={styles.mariaAvatar}>ML</div>

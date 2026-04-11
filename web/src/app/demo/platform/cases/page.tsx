@@ -108,15 +108,72 @@ export default function DemoCasesPage() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-3">
+        {filteredCases.map((c) => {
+          const client = getClient(c.client_id);
+          const attorney = getAttorney(c.attorney_id);
+          return (
+            <div
+              key={c.id}
+              className="rounded-lg p-4"
+              style={{
+                background: 'var(--card-bg)',
+                border: '1px solid var(--border-light)',
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-sm" style={{ color: 'var(--heading)' }}>
+                  {c.case_number}
+                </span>
+                {c.priority === 'urgent' && (
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      color: '#dc2626',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: '#dc2626',
+                        display: 'inline-block',
+                      }}
+                    />
+                    Urgent
+                  </span>
+                )}
+              </div>
+              <div className="text-sm mb-2" style={{ color: 'var(--foreground)' }}>
+                {client ? `${client.first_name} ${client.last_name}` : '--'}
+              </div>
+              <div className="flex flex-wrap gap-2 mb-2">
+                <Badge label={c.type} color={TYPE_COLORS[c.type]} />
+                <Badge label={c.status} color={STATUS_COLORS[c.status]} />
+              </div>
+              <div className="text-xs" style={{ color: 'var(--muted)' }}>
+                {attorney?.name || '--'}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Table (desktop) */}
       <div
-        className="rounded-lg overflow-x-auto"
+        className="hidden md:block rounded-lg overflow-x-auto"
         style={{
           background: 'var(--card-bg)',
           border: '1px solid var(--border-light)',
         }}
       >
-        <table className="w-full text-sm" style={{ minWidth: 900 }}>
+        <table className="w-full text-sm">
           <thead>
             <tr
               style={{

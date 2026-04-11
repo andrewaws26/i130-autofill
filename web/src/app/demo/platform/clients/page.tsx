@@ -66,15 +66,48 @@ export default function DemoClientsPage() {
         />
       </div>
 
-      {/* Table */}
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-3">
+        {clients.map((client) => (
+          <div
+            key={client.id}
+            className="rounded-lg p-4"
+            style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border-light)',
+            }}
+          >
+            <div className="font-medium text-sm mb-1" style={{ color: 'var(--accent-gold)' }}>
+              {client.first_name} {client.last_name}
+            </div>
+            <div className="text-sm mb-2" style={{ color: 'var(--foreground)' }}>
+              {client.phone}
+            </div>
+            <div className="flex items-center gap-3 mb-2">
+              <Badge
+                label={client.preferred_language}
+                color={LANGUAGE_COLORS[client.preferred_language] || '#6b7280'}
+              />
+              <span className="text-xs" style={{ color: 'var(--heading)' }}>
+                {getCaseCount(client.id)} case{getCaseCount(client.id) !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="text-xs" style={{ color: 'var(--muted)' }}>
+              {client.country_of_birth}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table (desktop) */}
       <div
-        className="rounded-lg overflow-x-auto"
+        className="hidden md:block rounded-lg overflow-x-auto"
         style={{
           background: 'var(--card-bg)',
           border: '1px solid var(--border-light)',
         }}
       >
-        <table className="w-full text-sm" style={{ minWidth: 700 }}>
+        <table className="w-full text-sm">
           <thead>
             <tr
               style={{

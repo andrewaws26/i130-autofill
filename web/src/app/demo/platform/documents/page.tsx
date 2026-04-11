@@ -108,9 +108,52 @@ export default function DemoDocumentsPage() {
                 </span>
               </div>
 
-              {/* Documents table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm" style={{ minWidth: 500 }}>
+              {/* Mobile Card View */}
+              <div className="md:hidden flex flex-col gap-2 p-3">
+                {docs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="rounded-lg p-3"
+                    style={{
+                      border: '1px solid var(--border-light)',
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        style={{ color: 'var(--muted-light)', flexShrink: 0 }}
+                      >
+                        <path d="M4 1h5.5L13 4.5V13a2 2 0 01-2 2H4a2 2 0 01-2-2V3a2 2 0 012-2z" />
+                        <polyline points="9.5 1 9.5 5 13 5" />
+                      </svg>
+                      <span className="text-sm font-medium" style={{ color: 'var(--heading)' }}>
+                        {doc.file_name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge
+                        label={doc.type}
+                        color={DOC_TYPE_COLORS[doc.type] || '#6b7280'}
+                      />
+                      <span className="text-xs" style={{ color: 'var(--muted-light)' }}>
+                        {formatDate(doc.uploaded_at)}
+                      </span>
+                    </div>
+                    <div className="text-xs" style={{ color: 'var(--muted)' }}>
+                      {doc.description}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Documents table (desktop) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
                       <th className="text-left px-5 py-2 font-medium text-xs" style={{ color: 'var(--muted)' }}>File</th>
