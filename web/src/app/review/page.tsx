@@ -692,17 +692,20 @@ function ReviewPageInner() {
 
   /* Download */
   const download = useCallback(() => {
-    if (!pdfBlob || !downloadRef.current) return;
+    if (!pdfBlob) return;
     const url = URL.createObjectURL(pdfBlob);
-    downloadRef.current.href = url;
-    downloadRef.current.download = 'I-130.pdf';
-    downloadRef.current.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `I-130_${data.petitioner.family_name || 'filled'}_${new Date().toISOString().slice(0,10)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     // Auto-clear sensitive data after download
     setTimeout(() => {
       sessionStorage.removeItem('intakeData');
       URL.revokeObjectURL(url);
     }, 3000);
-  }, [pdfBlob]);
+  }, [pdfBlob, data.petitioner.family_name]);
 
   /* Start new */
   const startNew = useCallback(() => {
@@ -820,34 +823,18 @@ function ReviewPageInner() {
         </div>
       </div>
 
-      {/* Success state */}
+      {/* Success banner - compact notice at top when PDF is ready */}
       {pdfBlob && (
         <div
-          className="card p-6 mb-8 text-center"
+          className="card p-4 mb-6 flex items-center justify-between flex-wrap gap-3"
           style={{ borderLeft: '4px solid var(--success)' }}
         >
-          <h2
-            className="text-xl font-semibold mb-2"
-            style={{
-              fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
-              color: 'var(--success)',
-            }}
-          >
-            I-130 Generated Successfully
-          </h2>
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <button className="btn btn-primary text-base px-6 py-3" onClick={download}>
-              Download PDF
-            </button>
-            <button className="btn btn-secondary" onClick={startNew}>
-              Start New
-            </button>
-          </div>
-          <p className="text-xs mt-3" style={{ color: 'var(--muted-light)' }}>
-            Session data will be cleared after download for security.
-          </p>
-          {/* Hidden download anchor */}
-          <a ref={downloadRef} className="hidden" />
+          <span className="text-sm font-semibold" style={{ color: 'var(--success)' }}>
+            I-130 Generated Successfully — scroll down to download
+          </span>
+          <button className="btn btn-primary text-sm px-4 py-2" onClick={download}>
+            Download PDF
+          </button>
         </div>
       )}
 
@@ -1097,55 +1084,80 @@ function ReviewPageInner() {
       {/* ============================================================
           Generate / Download
           ============================================================ */}
-      {!pdfBlob && (
-        <div className="text-center mb-10">
-          {genError && (
-            <div
-              className="rounded px-4 py-3 mb-4 text-sm text-center"
-              style={{ backgroundColor: 'rgba(155, 44, 44, 0.08)', color: 'var(--error)', border: '1px solid var(--error)' }}
-            >
-              <p className="mb-2">{genError}</p>
-              <button
-                className="btn btn-secondary text-sm"
-                onClick={generate}
-                disabled={generating}
-              >
-                Retry
-              </button>
-            </div>
-          )}
-          <div className="flex items-center justify-center gap-4">
+      <div className="text-center mb-10">
+        {genError && (
+          <div
+            className="rounded px-4 py-3 mb-4 text-sm text-center"
+            style={{ backgroundColor: 'rgba(155, 44, 44, 0.08)', color: 'var(--error)', border: '1px solid var(--error)' }}
+          >
+            <p className="mb-2">{genError}</p>
             <button
-              className="btn btn-primary btn-generate text-lg px-8 py-3"
+              className="btn btn-secondary text-sm"
+              onClick={generate}
+              disabled={generating}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        {pdfBlob ? (
+          <div className="card p-6" style={{ borderLeft: '4px solid var(--success)' }}>
+            <h2
+              className="text-xl font-semibold mb-2"
               style={{
                 fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
-                fontSize: '1.0625rem',
+                color: 'var(--success)',
               }}
-              disabled={generating}
-              onClick={generate}
             >
-              {generating ? 'Generating...' : 'Generate I-130 PDF'}
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={saveDraft}
-              disabled={generating}
-            >
-              Save Draft
-            </button>
+              I-130 Generated Successfully
+            </h2>
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <button className="btn btn-primary text-base px-6 py-3" onClick={download}>
+                Download PDF
+              </button>
+              <button className="btn btn-secondary" onClick={startNew}>
+                Start New
+              </button>
+            </div>
+            <p className="text-xs mt-3" style={{ color: 'var(--muted-light)' }}>
+              Session data will be cleared after download for security.
+            </p>
           </div>
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={clearAllData}
-              className="text-xs underline"
-              style={{ color: 'var(--muted)' }}
-            >
-              Clear All Data &amp; Start Over
-            </button>
-          </div>
-        </div>
-      )}
+        ) : (
+          <>
+            <div className="flex items-center justify-center gap-4">
+              <button
+                className="btn btn-primary btn-generate text-lg px-8 py-3"
+                style={{
+                  fontFamily: "var(--font-source-serif), 'Source Serif 4', serif",
+                  fontSize: '1.0625rem',
+                }}
+                disabled={generating}
+                onClick={generate}
+              >
+                {generating ? 'Generating...' : 'Generate I-130 PDF'}
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={saveDraft}
+                disabled={generating}
+              >
+                Save Draft
+              </button>
+            </div>
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={clearAllData}
+                className="text-xs underline"
+                style={{ color: 'var(--muted)' }}
+              >
+                Clear All Data &amp; Start Over
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Toast notification */}
       {toast && (
