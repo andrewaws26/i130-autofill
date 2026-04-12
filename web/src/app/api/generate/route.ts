@@ -477,21 +477,21 @@ export async function POST(request: Request) {
     let filledPdfBytes: Uint8Array | null = null;
     let saveTier = 0;
 
-    // Attempt 1: save without updating field appearances (fixes XFA forms)
+    // Attempt 1: normal save with field appearances (XFA has been stripped from template)
     try {
-      filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+      filledPdfBytes = await pdfDoc.save();
       saveTier = 1;
     } catch (e1) {
-      console.warn('Save attempt 1 (no appearance update) failed:', e1);
+      console.warn('Save attempt 1 (normal) failed:', e1);
     }
 
-    // Attempt 2: normal save
+    // Attempt 2: save without updating appearances (fallback)
     if (!filledPdfBytes) {
       try {
-        filledPdfBytes = await pdfDoc.save();
+        filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
         saveTier = 2;
       } catch (e2) {
-        console.warn('Save attempt 2 (normal) failed:', e2);
+        console.warn('Save attempt 2 (no appearances) failed:', e2);
       }
     }
 
