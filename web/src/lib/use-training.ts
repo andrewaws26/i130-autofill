@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useUser } from '@clerk/nextjs';
 import type {
   TrainingModule,
   TrainingModuleStep,
@@ -18,11 +17,26 @@ export function useIsAuthenticated(): {
   isAuthenticated: boolean;
   isLoading: boolean;
 } {
-  const { user, isLoaded } = useUser();
-  return {
-    isAuthenticated: isLoaded && !!user,
-    isLoading: !isLoaded,
-  };
+  // Safely try to use Clerk — returns false if ClerkProvider isn't available
+  const [state, setState] = useState({ isAuthenticated: false, isLoading: true });
+  useEffect(() => {
+    try {
+      // Dynamic import to avoid crash when Clerk isn't configured
+      import('@clerk/nextjs').then(({ useUser: _ }) => {
+        // Can't call hooks dynamically, so check via fetch instead
+        fetch('/api/training/progress', { method: 'GET' }).then(res => {
+          setState({ isAuthenticated: res.status !== 401, isLoading: false });
+        }).catch(() => {
+          setState({ isAuthenticated: false, isLoading: false });
+        });
+      }).catch(() => {
+        setState({ isAuthenticated: false, isLoading: false });
+      });
+    } catch {
+      setState({ isAuthenticated: false, isLoading: false });
+    }
+  }, []);
+  return state;
 }
 
 // ===========================================================================
