@@ -710,6 +710,12 @@ function ReviewPageInner() {
     router.push('/');
   }, [router]);
 
+  /* Clear all data handler - must be before any early returns to avoid hooks violation */
+  const clearAllData = useCallback(() => {
+    sessionStorage.removeItem('intakeData');
+    router.push('/');
+  }, [router]);
+
   if (!loaded) {
     return (
       <div className="flex items-center justify-center py-32" style={{ color: 'var(--muted)' }}>
@@ -720,12 +726,6 @@ function ReviewPageInner() {
 
   const petitionerName = [data.petitioner.given_name, data.petitioner.family_name].filter(Boolean).join(' ') || 'Petitioner';
   const beneficiaryName = [data.beneficiary.given_name, data.beneficiary.family_name].filter(Boolean).join(' ') || 'Beneficiary';
-
-  /* Clear all data handler */
-  const clearAllData = useCallback(() => {
-    sessionStorage.removeItem('intakeData');
-    router.push('/');
-  }, [router]);
 
   /* Count completed fields */
   const countFields = (obj: Record<string, unknown>, prefix = ''): { total: number; filled: number } => {
