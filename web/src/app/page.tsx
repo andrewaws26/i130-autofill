@@ -55,6 +55,7 @@ export default function UploadPage() {
           try {
             const body = await res.json();
             errorMsg = body.error || body.message || errorMsg;
+            if (body.details) errorMsg += ` (${body.details})`;
           } catch {
             const text = await res.text();
             if (text) errorMsg = text;

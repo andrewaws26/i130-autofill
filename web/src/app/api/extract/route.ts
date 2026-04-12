@@ -252,10 +252,23 @@ export async function POST(request: Request) {
         max_tokens: 8000,
         messages: [{ role: 'user', content }],
       });
-    } catch (apiError) {
+    } catch (apiError: unknown) {
       console.error('Claude API error:', apiError);
+      // Extract useful error info for debugging
+      const errMsg = apiError instanceof Error ? apiError.message : String(apiError);
+      const isTimeout = errMsg.includes('timeout') || errMsg.includes('ETIMEDOUT');
+      const isAuth = errMsg.includes('auth') || errMsg.includes('401') || errMsg.includes('api_key');
+      const isOverloaded = errMsg.includes('overloaded') || errMsg.includes('529');
+      const isRateLimit = errMsg.includes('rate') || errMsg.includes('429');
+
+      let userMessage = 'Failed to process document. Please try again.';
+      if (isTimeout) userMessage = 'The document took too long to process. Try uploading a smaller or clearer image.';
+      else if (isAuth) userMessage = 'API authentication error. Please contact support.';
+      else if (isOverloaded) userMessage = 'The AI service is temporarily busy. Please wait a moment and try again.';
+      else if (isRateLimit) userMessage = 'Too many requests. Please wait a moment and try again.';
+
       return Response.json(
-        { error: 'Failed to process document with Claude API', details: String(apiError) },
+        { error: userMessage, details: errMsg.slice(0, 200) },
         { status: 502 }
       );
     }
