@@ -475,40 +475,75 @@ export async function POST(request: Request) {
     }
 
     // Save with fallback — XFA forms can have internal ref issues during save
-    let filledPdfBytes: Uint8Array;
+    let filledPdfBytes: Uint8Array | null = null;
+
+    // Attempt 1: normal save
     try {
       filledPdfBytes = await pdfDoc.save();
-    } catch (saveError) {
-      console.warn('Standard save failed, trying with flattened form:', saveError);
+    } catch (e1) {
+      console.warn('Save attempt 1 failed:', e1);
+    }
+
+    // Attempt 2: flatten form then save
+    if (!filledPdfBytes) {
       try {
-        // Flatten the form to remove interactive fields, then save
         form.flatten();
         filledPdfBytes = await pdfDoc.save();
-      } catch (flattenError) {
-        console.warn('Flattened save also failed, reloading PDF with minimal fills:', flattenError);
-        // Last resort: reload the blank PDF and only fill text fields (no dropdowns/checkboxes)
-        const freshPdfBytes = await readFile(pdfPath);
-        const freshDoc = await PDFDocument.load(freshPdfBytes, { ignoreEncryption: true });
-        const freshForm = freshDoc.getForm();
+      } catch (e2) {
+        console.warn('Save attempt 2 (flatten) failed:', e2);
+      }
+    }
 
-        // Only fill the most critical text fields
+    // Attempt 3: reload blank PDF, fill ONLY text fields (no dropdowns, no checkboxes)
+    if (!filledPdfBytes) {
+      try {
+        const freshBytes = await readFile(pdfPath);
+        const freshDoc = await PDFDocument.load(freshBytes, { ignoreEncryption: true });
+        const freshForm = freshDoc.getForm();
         const criticalFields: [string, string][] = [
           ['Pt2Line4a_FamilyName[0]', p?.family_name || ''],
           ['Pt2Line4b_GivenName[0]', p?.given_name || ''],
+          ['Pt2Line4c_MiddleName[0]', p?.middle_name || ''],
           ['Pt2Line11_SSN[0]', removeDashes(p?.ssn || '')],
+          ['Pt2Line6_CityTownOfBirth[0]', p?.city_of_birth || ''],
+          ['Pt2Line7_CountryofBirth[0]', p?.country_of_birth || ''],
           ['Pt2Line8_DateofBirth[0]', p?.date_of_birth || ''],
+          ['Pt2Line10_StreetNumberName[0]', p?.mailing_address?.street || ''],
+          ['Pt2Line10_CityOrTown[0]', p?.mailing_address?.city || ''],
+          ['Pt2Line10_ZipCode[0]', p?.mailing_address?.zip || ''],
+          ['Pt2Line18_DateOfMarriage[0]', p?.date_of_marriage || ''],
           ['Pt4Line4a_FamilyName[0]', b?.family_name || ''],
           ['Pt4Line4b_GivenName[0]', b?.given_name || ''],
+          ['Pt4Line4c_MiddleName[0]', b?.middle_name || ''],
           ['Pt4Line3_SSN[0]', removeDashes(b?.ssn || '')],
+          ['Pt4Line7_CityTownOfBirth[0]', b?.city_of_birth || ''],
+          ['Pt4Line8_CountryOfBirth[0]', b?.country_of_birth || ''],
           ['Pt4Line9_DateOfBirth[0]', b?.date_of_birth || ''],
+          ['Pt4Line14_DaytimePhoneNumber[0]', b?.phone || ''],
         ];
         for (const [field, value] of criticalFields) {
-          if (value) {
+          if (value?.trim()) {
             try { freshForm.getTextField(field).setText(value); } catch { /* skip */ }
           }
         }
-        freshDoc.setSubject('WARNING: This PDF was generated with limited field filling due to a technical issue. Please review all fields manually.');
+        freshDoc.setSubject('WARNING: Limited auto-fill due to PDF compatibility issue. Please review all fields.');
         filledPdfBytes = await freshDoc.save();
+      } catch (e3) {
+        console.warn('Save attempt 3 (fresh reload) failed:', e3);
+      }
+    }
+
+    // Attempt 4: return a completely blank PDF (untouched) rather than an error
+    if (!filledPdfBytes) {
+      try {
+        const blankBytes = await readFile(pdfPath);
+        const blankDoc = await PDFDocument.load(blankBytes, { ignoreEncryption: true });
+        blankDoc.setSubject('WARNING: Auto-fill could not modify this PDF. All fields are blank. Please fill manually.');
+        filledPdfBytes = await blankDoc.save();
+      } catch (e4) {
+        console.warn('Save attempt 4 (blank copy) failed:', e4);
+        // Absolute last resort: return the raw blank PDF bytes without any modification
+        filledPdfBytes = new Uint8Array(await readFile(pdfPath));
       }
     }
 

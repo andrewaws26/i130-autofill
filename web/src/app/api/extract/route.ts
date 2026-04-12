@@ -20,6 +20,8 @@ CRITICAL READING INSTRUCTIONS:
 - Determine ethnicity from context: Central/South American countries = "Hispanic or Latino", Asian/African/European countries = "Not Hispanic or Latino"
 - For the petitioner's parent sex: if the label says "FATHER" → sex is "M", if "MOTHER" → sex is "F"
 - Common handwriting misreads to watch for: "Tracco" not "Tyco", "Leitchfield" not "Jethorhed", look for street name patterns
+- ALL dates MUST be in MM/DD/YYYY format. If the handwriting shows "October 9th" without a year, use the most likely year based on context (e.g., if the form was recently filled, use the current or recent year). If a field has multiple dates like "October 9th, September 9th", pick the FIRST date only.
+- proceedings_type MUST be one of: "Removal", "Exclusion", "Rescission", or "Other". If the handwriting is unclear, default to "Removal".
 
 Return ONLY valid JSON, no markdown, no explanation.
 
