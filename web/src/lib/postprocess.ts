@@ -20,9 +20,54 @@ export function normalizeState(state: string): string {
   return state;
 }
 
+const MONTH_MAP: Record<string, string> = {
+  january: '01', february: '02', march: '03', april: '04',
+  may: '05', june: '06', july: '07', august: '08',
+  september: '09', october: '10', november: '11', december: '12',
+  jan: '01', feb: '02', mar: '03', apr: '04',
+  jun: '06', jul: '07', aug: '08', sep: '09', sept: '09',
+  oct: '10', nov: '11', dec: '12',
+};
+
 export function normalizeDate(date: string): string {
   if (!date) return date;
-  return date.replace(/-/g, '/');
+  const s = date.trim();
+
+  // Already MM/DD/YYYY
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+
+  // Dash-separated (2025-09-20 or 09-20-2025)
+  const dashISO = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dashISO) return `${dashISO[2]}/${dashISO[3]}/${dashISO[1]}`;
+  const dashMDY = s.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (dashMDY) return `${dashMDY[1]}/${dashMDY[2]}/${dashMDY[3]}`;
+
+  // Natural language: "October 9th, 2025" or "October 9, 2025" or "Oct 9 2025"
+  const natural = s.match(/^([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})$/);
+  if (natural) {
+    const month = MONTH_MAP[natural[1].toLowerCase()];
+    if (month) return `${month}/${natural[2].padStart(2, '0')}/${natural[3]}`;
+  }
+
+  // "9 October 2025" or "9th October 2025"
+  const naturalDM = s.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+),?\s*(\d{4})$/);
+  if (naturalDM) {
+    const month = MONTH_MAP[naturalDM[2].toLowerCase()];
+    if (month) return `${month}/${naturalDM[1].padStart(2, '0')}/${naturalDM[3]}`;
+  }
+
+  // Month + day only, no year: "October 9th" or "October 9"
+  // If there are multiple dates separated by comma, take the first one
+  const parts = s.split(/,\s*/);
+  const firstPart = parts[0].trim();
+  const monthDay = firstPart.match(/^([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?$/);
+  if (monthDay) {
+    const month = MONTH_MAP[monthDay[1].toLowerCase()];
+    if (month) return `${month}/${monthDay[2].padStart(2, '0')}/`;
+  }
+
+  // Fallback: just replace dashes with slashes
+  return s.replace(/-/g, '/');
 }
 
 export function inferEthnicity(countryOfBirth: string): string {
@@ -134,6 +179,14 @@ export function postProcess(data: any) {
     b.employment_date_from = normalizeDate(b.employment_date_from || '');
     b.parent1_dob = normalizeDate(b.parent1_dob || '');
     b.parent2_dob = normalizeDate(b.parent2_dob || '');
+
+    // Normalize proceedings date
+    b.proceedings_date = normalizeDate(b.proceedings_date || '');
+    b.authorized_stay_expiration = normalizeDate(b.authorized_stay_expiration || '');
+    b.passport_expiration = normalizeDate(b.passport_expiration || '');
+
+    // Normalize proceedings state
+    b.proceedings_state = normalizeState(b.proceedings_state || '');
 
     // If class_of_admission or date_of_arrival exists, ever_in_us = Yes
     if (b.class_of_admission || b.date_of_arrival) {

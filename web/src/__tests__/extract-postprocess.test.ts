@@ -47,13 +47,43 @@ describe('normalizeCountry', () => {
 });
 
 describe('normalizeDate', () => {
-  it('converts dashes to slashes', () => {
+  it('converts dashes to slashes (MM-DD-YYYY)', () => {
     expect(normalizeDate('06-03-1998')).toBe('06/03/1998');
     expect(normalizeDate('11-02-2002')).toBe('11/02/2002');
   });
 
+  it('converts ISO format (YYYY-MM-DD)', () => {
+    expect(normalizeDate('2025-09-20')).toBe('09/20/2025');
+    expect(normalizeDate('1998-06-03')).toBe('06/03/1998');
+  });
+
   it('leaves slash-formatted dates unchanged', () => {
     expect(normalizeDate('06/03/1998')).toBe('06/03/1998');
+  });
+
+  it('converts natural language dates with year', () => {
+    expect(normalizeDate('October 9, 2025')).toBe('10/09/2025');
+    expect(normalizeDate('September 20, 2025')).toBe('09/20/2025');
+  });
+
+  it('converts natural language with ordinals', () => {
+    expect(normalizeDate('October 9th, 2025')).toBe('10/09/2025');
+    expect(normalizeDate('March 1st, 2024')).toBe('03/01/2024');
+    expect(normalizeDate('July 3rd, 2022')).toBe('07/03/2022');
+  });
+
+  it('converts abbreviated month names', () => {
+    expect(normalizeDate('Oct 9, 2025')).toBe('10/09/2025');
+    expect(normalizeDate('Sep 20 2025')).toBe('09/20/2025');
+  });
+
+  it('converts day-first format', () => {
+    expect(normalizeDate('9 October 2025')).toBe('10/09/2025');
+    expect(normalizeDate('1st January 2024')).toBe('01/01/2024');
+  });
+
+  it('handles comma-separated dates by taking first', () => {
+    expect(normalizeDate('October 9th, September 9th')).toBe('10/09/');
   });
 
   it('returns empty/falsy values as-is', () => {
