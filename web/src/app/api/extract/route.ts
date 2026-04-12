@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { postProcess } from '@/lib/postprocess';
+import { logApiCall } from '@/lib/api-logger';
 
 export const maxDuration = 120;
 
@@ -203,6 +204,7 @@ IMPORTANT:
 - If city_of_birth and country_of_birth appear to be the same (e.g., both say "Thailand"), that's OK - record as written`;
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
   try {
     const formData = await request.formData();
     const files = formData.getAll('file') as File[];
@@ -264,10 +266,22 @@ export async function POST(request: Request) {
       const isRateLimit = errMsg.includes('rate') || errMsg.includes('429');
 
       let userMessage = 'Failed to process document. Please try again.';
-      if (isTimeout) userMessage = 'The document took too long to process. Try uploading a smaller or clearer image.';
-      else if (isAuth) userMessage = 'API authentication error. Please contact support.';
-      else if (isOverloaded) userMessage = 'The AI service is temporarily busy. Please wait a moment and try again.';
-      else if (isRateLimit) userMessage = 'Too many requests. Please wait a moment and try again.';
+      let errorType = 'unknown';
+      if (isTimeout) { userMessage = 'The document took too long to process. Try uploading a smaller or clearer image.'; errorType = 'timeout'; }
+      else if (isAuth) { userMessage = 'API authentication error. Please contact support.'; errorType = 'auth'; }
+      else if (isOverloaded) { userMessage = 'The AI service is temporarily busy. Please wait a moment and try again.'; errorType = 'overloaded'; }
+      else if (isRateLimit) { userMessage = 'Too many requests. Please wait a moment and try again.'; errorType = 'rate_limit'; }
+
+      logApiCall({
+        endpoint: 'extract',
+        status: 'error',
+        status_code: 502,
+        duration_ms: Date.now() - startTime,
+        file_count: files.length,
+        file_types: files.map((f: File) => f.type),
+        error_message: errMsg.slice(0, 200),
+        error_type: errorType,
+      });
 
       return Response.json(
         { error: userMessage, details: errMsg.slice(0, 200) },
@@ -354,19 +368,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Audit log (no PII - only metadata)
-    console.log(JSON.stringify({
-      event: 'i130_extract',
-      timestamp: new Date().toISOString(),
-      fileCount: files.length,
-      fileTypes: files.map((f: File) => f.type),
+    const fieldsExtracted = Object.keys(data.petitioner || {}).filter((k: string) => data.petitioner[k]).length +
+                       Object.keys(data.beneficiary || {}).filter((k: string) => data.beneficiary[k]).length;
+
+    logApiCall({
+      endpoint: 'extract',
+      status: 'success',
+      status_code: 200,
+      duration_ms: Date.now() - startTime,
+      file_count: files.length,
+      file_types: files.map((f: File) => f.type),
+      fields_extracted: fieldsExtracted,
       relationship: data.relationship || 'unknown',
-      fieldsExtracted: Object.keys(data.petitioner || {}).filter((k: string) => data.petitioner[k]).length +
-                       Object.keys(data.beneficiary || {}).filter((k: string) => data.beneficiary[k]).length,
-    }));
+      validation_issues: validationIssues.length > 0 ? validationIssues : undefined,
+    });
 
     return Response.json(data);
   } catch (error) {
+    logApiCall({
+      endpoint: 'extract',
+      status: 'error',
+      status_code: 500,
+      duration_ms: Date.now() - startTime,
+      error_message: String(error).slice(0, 200),
+      error_type: 'unknown',
+    });
     console.error('Extract route error:', error);
     return Response.json(
       { error: 'Internal server error', details: String(error) },

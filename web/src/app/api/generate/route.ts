@@ -1,6 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { logApiCall } from '@/lib/api-logger';
 
 export const maxDuration = 30;
 
@@ -73,6 +74,7 @@ function removeDashes(ssn: string): string {
 }
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
   // Reset the failed fields tracker for each request
   failedFields.length = 0;
 
@@ -476,21 +478,34 @@ export async function POST(request: Request) {
 
     // Save with fallback — XFA forms can have internal ref issues during save
     let filledPdfBytes: Uint8Array | null = null;
+    let saveTier = 0;
 
-    // Attempt 1: normal save
+    // Attempt 1: save without updating field appearances (fixes XFA forms)
     try {
-      filledPdfBytes = await pdfDoc.save();
+      filledPdfBytes = await pdfDoc.save({ updateFieldAppearances: false });
+      saveTier = 1;
     } catch (e1) {
-      console.warn('Save attempt 1 failed:', e1);
+      console.warn('Save attempt 1 (no appearance update) failed:', e1);
     }
 
-    // Attempt 2: flatten form then save
+    // Attempt 2: normal save
+    if (!filledPdfBytes) {
+      try {
+        filledPdfBytes = await pdfDoc.save();
+        saveTier = 2;
+      } catch (e2) {
+        console.warn('Save attempt 2 (normal) failed:', e2);
+      }
+    }
+
+    // Attempt 3: flatten form then save
     if (!filledPdfBytes) {
       try {
         form.flatten();
         filledPdfBytes = await pdfDoc.save();
-      } catch (e2) {
-        console.warn('Save attempt 2 (flatten) failed:', e2);
+        saveTier = 3;
+      } catch (e3) {
+        console.warn('Save attempt 3 (flatten) failed:', e3);
       }
     }
 
@@ -527,34 +542,31 @@ export async function POST(request: Request) {
           }
         }
         freshDoc.setSubject('WARNING: Limited auto-fill due to PDF compatibility issue. Please review all fields.');
-        filledPdfBytes = await freshDoc.save();
-      } catch (e3) {
-        console.warn('Save attempt 3 (fresh reload) failed:', e3);
-      }
-    }
-
-    // Attempt 4: return a completely blank PDF (untouched) rather than an error
-    if (!filledPdfBytes) {
-      try {
-        const blankBytes = await readFile(pdfPath);
-        const blankDoc = await PDFDocument.load(blankBytes, { ignoreEncryption: true });
-        blankDoc.setSubject('WARNING: Auto-fill could not modify this PDF. All fields are blank. Please fill manually.');
-        filledPdfBytes = await blankDoc.save();
+        filledPdfBytes = await freshDoc.save({ updateFieldAppearances: false });
       } catch (e4) {
-        console.warn('Save attempt 4 (blank copy) failed:', e4);
-        // Absolute last resort: return the raw blank PDF bytes without any modification
-        filledPdfBytes = new Uint8Array(await readFile(pdfPath));
+        console.warn('Save attempt 4 (fresh text-only) failed:', e4);
       }
     }
 
-    // Audit log (no PII - only metadata)
-    console.log(JSON.stringify({
-      event: 'i130_generate',
-      timestamp: new Date().toISOString(),
+    // Attempt 5: raw blank PDF bytes without any modification
+    if (!filledPdfBytes) {
+      saveTier = 5;
+      filledPdfBytes = new Uint8Array(await readFile(pdfPath));
+    }
+
+    const duration = Date.now() - startTime;
+    logApiCall({
+      endpoint: 'generate',
+      status: saveTier <= 1 ? 'success' : saveTier <= 3 ? 'fallback' : 'error',
+      status_code: 200,
+      duration_ms: duration,
       relationship: rel || 'unknown',
-      failedFieldCount: failedFields.length,
-      failedFields: failedFields,
-    }));
+      save_tier: saveTier,
+      failed_fields: failedFields.slice(0, 50),
+      failed_field_count: failedFields.length,
+      error_message: saveTier > 1 ? `Used save tier ${saveTier}` : undefined,
+      error_type: saveTier > 1 ? 'pdf_save' : undefined,
+    });
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/pdf',
@@ -564,9 +576,19 @@ export async function POST(request: Request) {
     if (failedFields.length > 0) {
       headers['X-Failed-Fields'] = failedFields.join(', ');
     }
+    headers['X-Save-Tier'] = String(saveTier);
 
     return new Response(Buffer.from(filledPdfBytes), { headers });
   } catch (error) {
+    const duration = Date.now() - startTime;
+    logApiCall({
+      endpoint: 'generate',
+      status: 'error',
+      status_code: 500,
+      duration_ms: duration,
+      error_message: String(error).slice(0, 200),
+      error_type: 'unknown',
+    });
     console.error('Generate route error:', error);
     return Response.json(
       { error: 'Failed to generate PDF', details: String(error) },
