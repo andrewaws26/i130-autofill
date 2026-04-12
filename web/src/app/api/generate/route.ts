@@ -10,11 +10,6 @@ const failedFields: string[] = [];
 function setText(form: ReturnType<PDFDocument['getForm']>, fieldName: string, value: string) {
   if (!value || !value.trim()) return;
   try {
-    const field = form.getField(fieldName);
-    if (!field) {
-      failedFields.push(fieldName);
-      return;
-    }
     form.getTextField(fieldName).setText(String(value));
   } catch (err) {
     console.warn(`Failed to set text field "${fieldName}":`, err);
@@ -24,11 +19,6 @@ function setText(form: ReturnType<PDFDocument['getForm']>, fieldName: string, va
 
 function checkBox(form: ReturnType<PDFDocument['getForm']>, fieldName: string) {
   try {
-    const field = form.getField(fieldName);
-    if (!field) {
-      failedFields.push(fieldName);
-      return;
-    }
     form.getCheckBox(fieldName).check();
   } catch (err) {
     console.warn(`Failed to check box "${fieldName}":`, err);
@@ -39,8 +29,6 @@ function checkBox(form: ReturnType<PDFDocument['getForm']>, fieldName: string) {
 function selectDropdown(form: ReturnType<PDFDocument['getForm']>, fieldName: string, value: string) {
   if (!value || !value.trim()) return;
   try {
-    const field = form.getField(fieldName);
-    if (!field) { failedFields.push(fieldName); return; }
     const dropdown = form.getDropdown(fieldName);
     const options = dropdown.getOptions();
     // Exact match first
