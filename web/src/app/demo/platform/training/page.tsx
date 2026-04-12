@@ -9,17 +9,18 @@ interface TrainingModule {
   completed: boolean;
   current?: boolean;
   score?: number;
+  slug?: string;
 }
 
 const IMMIGRATION_MODULES: TrainingModule[] = [
-  { title: 'Understanding the I-130 Process', duration: '20 min', completed: true, score: 94 },
+  { title: 'Understanding the I-130 Process', duration: '20 min', completed: true, score: 94, slug: 'i130-process' },
   { title: 'Evidence Requirements for Spousal Petitions', duration: '25 min', completed: true, score: 88 },
   { title: 'Reading and Filling USCIS Forms', duration: '30 min', completed: true, score: 91 },
   { title: 'Naturalization Basics (N-400)', duration: '20 min', completed: true, score: 96 },
   { title: 'Asylum Law Fundamentals', duration: '35 min', completed: true, score: 82 },
   { title: 'Responding to RFEs', duration: '25 min', completed: true, score: 90 },
   { title: 'USCIS Processing Times & Expedite Requests', duration: '15 min', completed: true, score: 87 },
-  { title: 'Concurrent Filing Strategy (I-485)', duration: '15 min', completed: false, current: true },
+  { title: 'Concurrent Filing Strategy (I-485)', duration: '15 min', completed: false, current: true, slug: 'concurrent-filing' },
   { title: 'Work Permits and Travel Documents', duration: '20 min', completed: false },
   { title: 'Immigration Consequences of Criminal Convictions', duration: '40 min', completed: false },
   { title: 'Removal Defense Basics', duration: '30 min', completed: false },
@@ -198,7 +199,7 @@ export default function TrainingPage() {
             </p>
             <div className="flex items-center gap-3">
               <Link
-                href="/demo/platform/training/module"
+                href="/demo/platform/training/module/concurrent-filing"
                 className="inline-flex px-5 py-2 rounded-md text-sm font-medium"
                 style={{ background: 'var(--accent-gold)', color: '#fff', textDecoration: 'none' }}
               >
@@ -286,14 +287,27 @@ export default function TrainingPage() {
 
                 {/* Module info */}
                 <div className="flex-1 min-w-0">
-                  <span
-                    className="text-sm font-medium"
-                    style={{
-                      color: mod.completed || mod.current ? 'var(--heading)' : 'var(--muted)',
-                    }}
-                  >
-                    {mod.title}
-                  </span>
+                  {mod.slug ? (
+                    <Link
+                      href={`/demo/platform/training/module/${mod.slug}`}
+                      className="text-sm font-medium hover:underline"
+                      style={{
+                        color: mod.current ? 'var(--accent-gold)' : mod.completed ? 'var(--heading)' : 'var(--muted)',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {mod.title}
+                    </Link>
+                  ) : (
+                    <span
+                      className="text-sm font-medium"
+                      style={{
+                        color: mod.completed || mod.current ? 'var(--heading)' : 'var(--muted)',
+                      }}
+                    >
+                      {mod.title}
+                    </span>
+                  )}
                 </div>
 
                 {/* Duration */}
