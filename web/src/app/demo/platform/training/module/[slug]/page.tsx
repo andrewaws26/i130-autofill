@@ -163,19 +163,36 @@ export default function DynamicModulePage() {
     async (questionId: string, selectedKey: string) => {
       if (quizResults.has(questionId)) return; // already answered
 
-      const result = await submitQuiz(questionId, selectedKey);
+      // Try API first (works when authenticated)
+      let result = await submitQuiz(questionId, selectedKey);
+
+      // Fallback: evaluate locally when API fails (demo mode)
+      if (!result) {
+        const question = questions.find((q) => q.id === questionId);
+        if (question) {
+          const isCorrect = selectedKey === question.correctKey;
+          const explanations = question.explanations as Record<string, string>;
+          result = {
+            correct: isCorrect,
+            explanation: isCorrect
+              ? (explanations['correct'] || explanations[selectedKey] || 'Correct!')
+              : (explanations[selectedKey] || 'Incorrect. Please review the material.'),
+          };
+        }
+      }
+
       if (result) {
         setQuizResults((prev) => {
           const next = new Map(prev);
           next.set(questionId, {
-            correct: result.correct,
-            explanation: result.explanation,
+            correct: result!.correct,
+            explanation: result!.explanation,
           });
           return next;
         });
       }
     },
-    [quizResults, submitQuiz],
+    [quizResults, submitQuiz, questions],
   );
 
   // -------------------------------------------------------------------------
