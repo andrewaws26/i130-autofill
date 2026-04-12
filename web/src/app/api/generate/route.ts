@@ -7,21 +7,43 @@ export const maxDuration = 30;
 
 const failedFields: string[] = [];
 
+// Field name lookup: the cleaned PDF uses full XFA paths like
+// "form1[0].#subform[0].Pt2Line4a_FamilyName[0]" but our code uses
+// short names like "Pt2Line4a_FamilyName[0]". This map is built once
+// when the form is loaded to translate short → full names.
+let fieldNameMap: Record<string, string> = {};
+
+function buildFieldNameMap(form: ReturnType<PDFDocument['getForm']>) {
+  fieldNameMap = {};
+  const fields = form.getFields();
+  for (const field of fields) {
+    const fullName = field.getName();
+    const parts = fullName.split('.');
+    const shortName = parts[parts.length - 1];
+    // First match wins (avoid overwriting with duplicates)
+    if (!fieldNameMap[shortName]) {
+      fieldNameMap[shortName] = fullName;
+    }
+  }
+}
+
+function resolve(fieldName: string): string {
+  return fieldNameMap[fieldName] || fieldName;
+}
+
 function setText(form: ReturnType<PDFDocument['getForm']>, fieldName: string, value: string) {
   if (!value || !value.trim()) return;
   try {
-    form.getTextField(fieldName).setText(String(value));
+    form.getTextField(resolve(fieldName)).setText(String(value));
   } catch (err) {
-    console.warn(`Failed to set text field "${fieldName}":`, err);
     failedFields.push(fieldName);
   }
 }
 
 function checkBox(form: ReturnType<PDFDocument['getForm']>, fieldName: string) {
   try {
-    form.getCheckBox(fieldName).check();
+    form.getCheckBox(resolve(fieldName)).check();
   } catch (err) {
-    console.warn(`Failed to check box "${fieldName}":`, err);
     failedFields.push(fieldName);
   }
 }
@@ -29,30 +51,15 @@ function checkBox(form: ReturnType<PDFDocument['getForm']>, fieldName: string) {
 function selectDropdown(form: ReturnType<PDFDocument['getForm']>, fieldName: string, value: string) {
   if (!value || !value.trim()) return;
   try {
-    const dropdown = form.getDropdown(fieldName);
+    const dropdown = form.getDropdown(resolve(fieldName));
     const options = dropdown.getOptions();
-    // Exact match first
-    if (options.includes(value)) {
-      dropdown.select(value);
-      return;
-    }
-    // Case-insensitive match
+    if (options.includes(value)) { dropdown.select(value); return; }
     const match = options.find(o => o.toLowerCase() === value.toLowerCase());
-    if (match) {
-      dropdown.select(match);
-      return;
-    }
-    // Partial match (e.g., "KY" matching "KY - Kentucky")
+    if (match) { dropdown.select(match); return; }
     const partial = options.find(o => o.toUpperCase().startsWith(value.toUpperCase()));
-    if (partial) {
-      dropdown.select(partial);
-      return;
-    }
-    // No match found — skip to avoid corrupting PDF state
-    console.warn(`Dropdown "${fieldName}": value "${value}" not in options [${options.slice(0, 5).join(', ')}${options.length > 5 ? '...' : ''}]`);
+    if (partial) { dropdown.select(partial); return; }
     failedFields.push(fieldName);
   } catch (err) {
-    console.warn(`Failed to select dropdown "${fieldName}" with value "${value}":`, err);
     failedFields.push(fieldName);
   }
 }
@@ -78,6 +85,7 @@ export async function POST(request: Request) {
     const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
     const form = pdfDoc.getForm();
+    buildFieldNameMap(form);
 
     // ===== PAGE 1 - Relationship + Petitioner =====
 
