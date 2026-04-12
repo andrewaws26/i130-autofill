@@ -417,7 +417,10 @@ export function StepRenderer({
   contentJson: StepContentJson;
   stepType: string;
 }) {
-  const sections = contentJson.sections ?? [];
+  // Handle both formats: { sections: [...] } and raw array [...]
+  const sections: ContentSection[] = Array.isArray(contentJson)
+    ? contentJson as unknown as ContentSection[]
+    : (contentJson.sections ?? []);
 
   return (
     <div className="p-6 md:p-8">
@@ -430,7 +433,7 @@ export function StepRenderer({
         </h2>
       )}
 
-      {contentJson.preamble && (
+      {!Array.isArray(contentJson) && contentJson.preamble && (
         <p
           className="text-base font-medium mb-5"
           style={{ color: 'var(--heading)', lineHeight: 1.5 }}
