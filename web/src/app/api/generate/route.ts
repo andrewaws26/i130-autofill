@@ -7,9 +7,14 @@ export const maxDuration = 30;
 const failedFields: string[] = [];
 
 function setText(form: ReturnType<PDFDocument['getForm']>, fieldName: string, value: string) {
-  if (!value) return;
+  if (!value || !value.trim()) return;
   try {
-    form.getTextField(fieldName).setText(value);
+    const field = form.getField(fieldName);
+    if (!field) {
+      failedFields.push(fieldName);
+      return;
+    }
+    form.getTextField(fieldName).setText(String(value));
   } catch (err) {
     console.warn(`Failed to set text field "${fieldName}":`, err);
     failedFields.push(fieldName);
@@ -18,6 +23,11 @@ function setText(form: ReturnType<PDFDocument['getForm']>, fieldName: string, va
 
 function checkBox(form: ReturnType<PDFDocument['getForm']>, fieldName: string) {
   try {
+    const field = form.getField(fieldName);
+    if (!field) {
+      failedFields.push(fieldName);
+      return;
+    }
     form.getCheckBox(fieldName).check();
   } catch (err) {
     console.warn(`Failed to check box "${fieldName}":`, err);
@@ -26,9 +36,30 @@ function checkBox(form: ReturnType<PDFDocument['getForm']>, fieldName: string) {
 }
 
 function selectDropdown(form: ReturnType<PDFDocument['getForm']>, fieldName: string, value: string) {
-  if (!value) return;
+  if (!value || !value.trim()) return;
   try {
-    form.getDropdown(fieldName).select(value);
+    const dropdown = form.getDropdown(fieldName);
+    const options = dropdown.getOptions();
+    // Exact match first
+    if (options.includes(value)) {
+      dropdown.select(value);
+      return;
+    }
+    // Case-insensitive match
+    const match = options.find(o => o.toLowerCase() === value.toLowerCase());
+    if (match) {
+      dropdown.select(match);
+      return;
+    }
+    // Partial match (e.g., "KY" matching "KY - Kentucky")
+    const partial = options.find(o => o.toUpperCase().startsWith(value.toUpperCase()));
+    if (partial) {
+      dropdown.select(partial);
+      return;
+    }
+    // No match found — skip to avoid corrupting PDF state
+    console.warn(`Dropdown "${fieldName}": value "${value}" not in options [${options.slice(0, 5).join(', ')}${options.length > 5 ? '...' : ''}]`);
+    failedFields.push(fieldName);
   } catch (err) {
     console.warn(`Failed to select dropdown "${fieldName}" with value "${value}":`, err);
     failedFields.push(fieldName);
