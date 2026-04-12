@@ -17,24 +17,23 @@ export function useIsAuthenticated(): {
   isAuthenticated: boolean;
   isLoading: boolean;
 } {
-  // Safely try to use Clerk — returns false if ClerkProvider isn't available
-  const [state, setState] = useState({ isAuthenticated: false, isLoading: true });
+  // Check if user is authenticated by testing a protected endpoint
+  // Returns false immediately if no Clerk key is configured (demo mode)
+  const [state, setState] = useState({ isAuthenticated: false, isLoading: false });
   useEffect(() => {
-    try {
-      // Dynamic import to avoid crash when Clerk isn't configured
-      import('@clerk/nextjs').then(({ useUser: _ }) => {
-        // Can't call hooks dynamically, so check via fetch instead
-        fetch('/api/training/progress', { method: 'GET' }).then(res => {
-          setState({ isAuthenticated: res.status !== 401, isLoading: false });
-        }).catch(() => {
-          setState({ isAuthenticated: false, isLoading: false });
-        });
-      }).catch(() => {
-        setState({ isAuthenticated: false, isLoading: false });
-      });
-    } catch {
+    // If no Clerk key, skip the check entirely (no console errors)
+    const clerkKey = typeof window !== 'undefined' &&
+      document.querySelector('script[data-clerk-publishable-key]');
+    if (!clerkKey) {
       setState({ isAuthenticated: false, isLoading: false });
+      return;
     }
+    setState(prev => ({ ...prev, isLoading: true }));
+    fetch('/api/training/progress', { method: 'GET' }).then(res => {
+      setState({ isAuthenticated: res.ok, isLoading: false });
+    }).catch(() => {
+      setState({ isAuthenticated: false, isLoading: false });
+    });
   }, []);
   return state;
 }

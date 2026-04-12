@@ -175,7 +175,7 @@ export default function DynamicModulePage() {
           result = {
             correct: isCorrect,
             explanation: isCorrect
-              ? (explanations['correct'] || explanations[selectedKey] || 'Correct!')
+              ? (explanations[question.correctKey] || explanations['correct'] || 'Correct!')
               : (explanations[selectedKey] || 'Incorrect. Please review the material.'),
           };
         }
@@ -310,18 +310,9 @@ export default function DynamicModulePage() {
           />
         )}
 
-        {/* Quiz steps: preamble + questions */}
+        {/* Quiz steps: questions only (no duplicate preamble) */}
         {isQuizStep && step && (
           <>
-            {/* Render any preamble / sections before the questions */}
-            {(step.contentJson.preamble ||
-              (step.contentJson.sections && step.contentJson.sections.length > 0)) && (
-              <StepRenderer
-                contentJson={step.contentJson}
-                stepType={step.stepType}
-              />
-            )}
-
             {/* Quiz questions */}
             {currentQuestions.map((q) => (
               <QuizCard
