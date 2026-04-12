@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   I130_SPOUSAL_SCENARIO,
   type PhaseDecision,
+  type ChatMessage,
   calculateScore,
   getGradeColor,
   getGradeLabel,
@@ -14,34 +15,98 @@ const SCENARIO = I130_SPOUSAL_SCENARIO;
 const TOTAL_PHASES = SCENARIO.phases.length;
 const DECISION_PHASES = SCENARIO.phases.filter(p => p.decision).length;
 
-type PhaseStatus = 'intro' | 'event' | 'decision' | 'feedback' | 'complete';
+// chat = talking to client (input active)
+// decision = answering the question (chat locked, decision cards visible)
+type PhaseStatus = 'intro' | 'event' | 'chat' | 'decision' | 'feedback' | 'complete';
 
 export default function SimulationPage() {
   const [currentPhase, setCurrentPhase] = useState(1);
   const [phaseStatus, setPhaseStatus] = useState<PhaseStatus>('intro');
   const [decisions, setDecisions] = useState<PhaseDecision[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showGuidance, setShowGuidance] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const phase = SCENARIO.phases.find(p => p.number === currentPhase);
   const progress = (currentPhase / TOTAL_PHASES) * 100;
   const isComplete = currentPhase > TOTAL_PHASES || phaseStatus === 'complete';
+  const phaseChatMessages = chatMessages.filter(m => m.phase === currentPhase);
+  const chatIsLocked = phaseStatus !== 'chat';
 
   // Scroll to top on phase change
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [currentPhase]);
 
+  // Scroll chat to bottom on new messages
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
+
+  // Add client opener when entering chat phase
+  useEffect(() => {
+    if (phaseStatus === 'chat' && phase?.clientChatOpener) {
+      const already = chatMessages.some(m => m.phase === currentPhase && m.from === 'client');
+      if (!already) {
+        setChatMessages(prev => [...prev, {
+          phase: currentPhase, from: 'client',
+          text: phase.clientChatOpener!,
+          emotion: currentPhase === 6 ? 'upset' : currentPhase === 8 ? 'grateful' : 'calm',
+        }]);
+      }
+    }
+  }, [phaseStatus, currentPhase, phase, chatMessages]);
+
   // ── Actions ─────────────────────────────────────────────────────────────
 
   const advanceFromEvent = () => {
-    if (phase?.decision) {
+    if (phase?.hasClientChat) {
+      setPhaseStatus('chat');
+    } else if (phase?.decision) {
       setPhaseStatus('decision');
     } else if (phase?.eventType === 'resolution') {
       setPhaseStatus('complete');
     }
+  };
+
+  const lockChatAndDecide = () => {
+    if (phase?.decision) {
+      setPhaseStatus('decision');
+    } else {
+      advanceToNextPhase();
+    }
+  };
+
+  const sendChatMessage = async () => {
+    const msg = chatInput.trim();
+    if (!msg || isLoading || chatIsLocked) return;
+    setChatInput('');
+
+    setChatMessages(prev => [...prev, { phase: currentPhase, from: 'associate', text: msg }]);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phase: currentPhase, action: 'chat_message', chatMessage: msg }),
+      });
+      const data = await res.json();
+      setChatMessages(prev => [...prev, {
+        phase: currentPhase, from: 'client',
+        text: data.clientResponse || 'I understand. Thank you.',
+        emotion: data.emotion || 'calm',
+      }]);
+    } catch {
+      setChatMessages(prev => [...prev, {
+        phase: currentPhase, from: 'client', text: 'I understand. Thank you.', emotion: 'calm',
+      }]);
+    }
+    setIsLoading(false);
   };
 
   const submitDecision = async () => {
@@ -98,6 +163,7 @@ export default function SimulationPage() {
       setPhaseStatus('event');
       setSelectedOption(null);
       setShowGuidance(false);
+      setChatInput('');
     }
   };
 
@@ -175,14 +241,18 @@ export default function SimulationPage() {
             <div className="flex flex-col gap-3 text-sm" style={{ color: 'var(--foreground)' }}>
               <div className="flex gap-3 items-start">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>1</span>
-                <span><strong>Read the scenario</strong> — each phase starts with something happening in the case. Sometimes the client will say something to you.</span>
+                <span><strong>Read the scenario</strong> — each phase starts with something happening in the case.</span>
               </div>
               <div className="flex gap-3 items-start">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>2</span>
-                <span><strong>Answer the question</strong> — pick the best answer from the options. There is one correct answer per phase.</span>
+                <span><strong>Talk to the client</strong> — some phases let you chat with the AI-powered client. Ask questions, gather information, exercise your judgment. When you have enough information, you will lock the chat and move on.</span>
               </div>
               <div className="flex gap-3 items-start">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>3</span>
+                <span><strong>Answer the question</strong> — the chat locks and you pick the best answer from the options. There is one correct answer per phase.</span>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>4</span>
                 <span><strong>Get feedback</strong> — the AI evaluates your decision and Attorney Attum shares expert insight. Then you move to the next phase.</span>
               </div>
             </div>
@@ -223,28 +293,35 @@ export default function SimulationPage() {
             </h2>
 
             {/* Current step indicator */}
-            {phase!.decision && (
-              <div className="flex items-center gap-2 mb-4">
-                {['Read scenario', 'Answer question', 'Get feedback'].map((step, i) => {
-                  const statusIdx: Record<PhaseStatus, number> = { intro: -1, event: 0, decision: 1, feedback: 2, complete: 99 };
-                  const currentIdx = statusIdx[phaseStatus];
-                  const isActive = i === currentIdx;
-                  const isDone = i < currentIdx;
-                  return (
-                    <div key={step} className="flex items-center gap-1.5">
-                      {i > 0 && <div className="w-4 h-px" style={{ backgroundColor: isDone ? '#16a34a' : 'var(--border-light)' }} />}
-                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{
-                        backgroundColor: isActive ? 'var(--accent-gold)' : isDone ? '#16a34a' : 'var(--background)',
-                        color: isActive || isDone ? '#fff' : 'var(--muted)',
-                        border: !isActive && !isDone ? '1px solid var(--border-light)' : 'none',
-                      }}>
-                        {isDone ? '\u2713' : ''} {step}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {phase!.decision && (() => {
+              const steps = phase!.hasClientChat
+                ? ['Read scenario', 'Talk to client', 'Answer question', 'Get feedback']
+                : ['Read scenario', 'Answer question', 'Get feedback'];
+              const statusMap: Record<PhaseStatus, number> = phase!.hasClientChat
+                ? { intro: -1, event: 0, chat: 1, decision: 2, feedback: 3, complete: 99 }
+                : { intro: -1, event: 0, chat: 0, decision: 1, feedback: 2, complete: 99 };
+              const currentIdx = statusMap[phaseStatus];
+              return (
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                  {steps.map((step, i) => {
+                    const isActive = i === currentIdx;
+                    const isDone = i < currentIdx;
+                    return (
+                      <div key={step} className="flex items-center gap-1.5">
+                        {i > 0 && <div className="w-4 h-px" style={{ backgroundColor: isDone ? '#16a34a' : 'var(--border-light)' }} />}
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap" style={{
+                          backgroundColor: isActive ? 'var(--accent-gold)' : isDone ? '#16a34a' : 'var(--background)',
+                          color: isActive || isDone ? '#fff' : 'var(--muted)',
+                          border: !isActive && !isDone ? '1px solid var(--border-light)' : 'none',
+                        }}>
+                          {isDone ? '\u2713 ' : ''}{step}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
 
             {/* Event card */}
             <div
@@ -259,27 +336,97 @@ export default function SimulationPage() {
               </p>
             </div>
 
-            {/* Client message (static, not interactive) */}
-            {phase!.clientChatOpener && (
-              <div className="rounded-lg p-4 mb-4 flex gap-3" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: '#7c3aed', color: '#fff' }}>
-                  {SCENARIO.client.initials}
-                </div>
-                <div>
-                  <div className="text-xs font-semibold mb-1" style={{ color: '#7c3aed' }}>
-                    {SCENARIO.client.name} says:
-                  </div>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>
-                    &ldquo;{phase!.clientChatOpener}&rdquo;
-                  </p>
-                </div>
-              </div>
-            )}
-
             {phaseStatus === 'event' && (
               <button onClick={advanceFromEvent} style={styles.goldButton}>
-                {phase!.decision ? 'Answer the question' : 'Continue'}
+                {phase!.hasClientChat ? 'Talk to the client' : phase!.decision ? 'Answer the question' : 'Continue'}
               </button>
+            )}
+
+            {/* Client conversation — active during chat, locked during decision/feedback */}
+            {phaseChatMessages.length > 0 && (
+              <div className="mb-4">
+                <div className="rounded-lg overflow-hidden" style={{ border: `2px solid ${chatIsLocked ? 'var(--border-light)' : 'var(--accent-gold)'}` }}>
+                  <div className="px-4 py-2.5 flex items-center justify-between" style={{
+                    background: chatIsLocked ? 'var(--background)' : '#fdf8f0',
+                    borderBottom: '1px solid var(--border-light)',
+                  }}>
+                    <span className="text-xs font-bold uppercase" style={{ color: chatIsLocked ? 'var(--muted)' : 'var(--accent-gold)', letterSpacing: '0.04em' }}>
+                      Client conversation
+                    </span>
+                    {chatIsLocked && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: 'var(--border-light)', color: 'var(--muted)' }}>
+                        Locked — decision time
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4 flex flex-col gap-3" style={{ background: 'var(--card-bg)', maxHeight: 320, overflowY: 'auto' }}>
+                    {phaseChatMessages.map((msg, i) => (
+                      <div key={i} className={`flex gap-2.5 ${msg.from === 'associate' ? 'flex-row-reverse' : ''}`}>
+                        {msg.from === 'client' && (
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: '#7c3aed', color: '#fff' }}>
+                            {SCENARIO.client.initials}
+                          </div>
+                        )}
+                        <div className="rounded-xl px-3.5 py-2.5 text-sm max-w-[80%]" style={{
+                          background: msg.from === 'client' ? '#fffbeb' : '#f0fdf4',
+                          border: `1px solid ${msg.from === 'client' ? '#fde68a' : '#bbf7d0'}`,
+                          color: 'var(--foreground)',
+                        }}>
+                          {msg.from === 'client' && (
+                            <div className="text-xs font-semibold mb-1" style={{ color: '#7c3aed' }}>
+                              {SCENARIO.client.name}
+                              {msg.emotion === 'upset' && <span style={{ color: '#dc2626' }}> (distressed)</span>}
+                              {msg.emotion === 'grateful' && <span style={{ color: '#16a34a' }}> (grateful)</span>}
+                            </div>
+                          )}
+                          {msg.from === 'associate' && (
+                            <div className="text-xs font-semibold mb-1" style={{ color: '#16a34a' }}>You</div>
+                          )}
+                          <p className="leading-relaxed">{msg.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {isLoading && phaseStatus === 'chat' && (
+                      <div className="flex gap-2.5">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: '#7c3aed', color: '#fff' }}>{SCENARIO.client.initials}</div>
+                        <div className="rounded-xl px-3.5 py-2.5" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
+                          <span className="text-sm" style={{ color: 'var(--muted)' }}>typing...</span>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={chatEndRef} />
+                  </div>
+                  {/* Chat input — only visible when chat is active */}
+                  {phaseStatus === 'chat' && (
+                    <div className="px-4 py-3 flex gap-2" style={{ borderTop: '1px solid var(--border-light)', background: '#fdf8f0' }}>
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={e => setChatInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && sendChatMessage()}
+                        placeholder="Ask the client a question or respond..."
+                        className="flex-1 rounded-lg px-3 py-2 text-sm"
+                        style={{ border: '1px solid var(--border-light)', background: 'var(--card-bg)', color: 'var(--foreground)' }}
+                        disabled={isLoading}
+                      />
+                      <button
+                        onClick={sendChatMessage}
+                        disabled={isLoading || !chatInput.trim()}
+                        className="rounded-lg px-4 py-2 text-sm font-medium text-white"
+                        style={{ background: isLoading || !chatInput.trim() ? 'var(--muted)' : 'var(--accent-gold)' }}
+                      >
+                        Send
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* Transition button — only after at least one exchange */}
+                {phaseStatus === 'chat' && phaseChatMessages.filter(m => m.from === 'associate').length >= 1 && !isLoading && (
+                  <button onClick={lockChatAndDecide} style={{ ...styles.goldButton, marginTop: 12 }}>
+                    I have enough information — answer the question
+                  </button>
+                )}
+              </div>
             )}
 
             {/* Decision cards */}
