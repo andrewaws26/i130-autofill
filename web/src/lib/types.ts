@@ -149,10 +149,16 @@ export interface Beneficiary {
   passport_expiration: string;
 }
 
+// Confidence levels: 'high' (>90%), 'medium' (70-90%), 'low' (<70%)
+// Keyed by dot-path: e.g., "petitioner.family_name", "beneficiary.ssn"
+export type ConfidenceLevel = 'high' | 'medium' | 'low';
+export type ConfidenceMap = Record<string, ConfidenceLevel>;
+
 export interface IntakeData {
   petitioner: Petitioner;
   beneficiary: Beneficiary;
   relationship: string;
+  confidence?: ConfidenceMap;
 }
 
 function createEmptyAddress(): Address {

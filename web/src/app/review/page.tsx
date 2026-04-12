@@ -239,6 +239,7 @@ function Field({
   format,
   masked,
   onToggleMask,
+  confidence,
 }: {
   label: string;
   value: string;
@@ -249,9 +250,12 @@ function Field({
   format?: 'ssn' | 'date' | 'phone';
   masked?: boolean;
   onToggleMask?: () => void;
+  confidence?: 'high' | 'medium' | 'low';
 }) {
   const safeValue = safeString(value);
   const filled = safeValue.trim() !== '';
+  const isLowConf = confidence === 'low';
+  const isMedConf = confidence === 'medium';
 
   const handleChange = (raw: string) => {
     if (format === 'ssn') onChange(formatSSN(raw));
@@ -262,12 +266,27 @@ function Field({
 
   const displayValue = masked ? maskSSN(safeValue) : safeValue;
 
+  let borderColor = filled ? 'var(--success)' : 'var(--accent-gold-light)';
+  if (error) borderColor = 'var(--error)';
+  else if (isLowConf && filled) borderColor = '#dc2626';
+  else if (isMedConf && filled) borderColor = '#d97706';
+
   return (
     <div className={className}>
       <div className="flex items-center gap-2 mb-1">
         <label className="block text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
           {label}
         </label>
+        {isLowConf && filled && (
+          <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+            Verify
+          </span>
+        )}
+        {isMedConf && filled && (
+          <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: '#fffbeb', color: '#d97706', border: '1px solid #fde68a' }}>
+            Check
+          </span>
+        )}
         {onToggleMask !== undefined && (
           <button
             type="button"
@@ -286,12 +305,12 @@ function Field({
         onFocus={onToggleMask && masked ? onToggleMask : undefined}
         className={`w-full px-3 py-2 border rounded transition-colors focus:outline-none bg-white`}
         style={{
-          borderLeft: error ? '4px solid var(--error)' : filled ? '4px solid var(--success)' : '4px solid var(--accent-gold-light)',
+          borderLeft: `4px solid ${borderColor}`,
           borderTop: '1px solid var(--border)',
           borderRight: '1px solid var(--border)',
           borderBottom: '1px solid var(--border)',
           color: 'var(--foreground)',
-          backgroundColor: 'var(--card-bg)',
+          backgroundColor: isLowConf && filled ? '#fef2f2' : isMedConf && filled ? '#fffbeb' : 'var(--card-bg)',
         }}
       />
       {error && <p className="text-xs mt-1" style={{ color: 'var(--error)' }}>{error}</p>}
@@ -309,26 +328,48 @@ function SelectField({
   onChange,
   options,
   className = '',
+  confidence,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
   className?: string;
+  confidence?: 'high' | 'medium' | 'low';
 }) {
   const safeValue = safeString(value);
   const filled = safeValue.trim() !== '';
+  const isLowConf = confidence === 'low';
+  const isMedConf = confidence === 'medium';
+
+  let borderColor = filled ? 'var(--success)' : 'var(--accent-gold-light)';
+  if (isLowConf && filled) borderColor = '#dc2626';
+  else if (isMedConf && filled) borderColor = '#d97706';
+
   return (
     <div className={className}>
-      <label className="block text-xs font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--muted)' }}>
-        {label}
-      </label>
+      <div className="flex items-center gap-2 mb-1">
+        <label className="block text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--muted)' }}>
+          {label}
+        </label>
+        {isLowConf && filled && (
+          <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+            Verify
+          </span>
+        )}
+        {isMedConf && filled && (
+          <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: '#fffbeb', color: '#d97706', border: '1px solid #fde68a' }}>
+            Check
+          </span>
+        )}
+      </div>
       <select
         value={safeValue}
         onChange={(e) => onChange(e.target.value)}
         className="form-select w-full"
         style={{
-          borderLeft: filled ? '4px solid var(--success)' : '4px solid var(--accent-gold-light)',
+          borderLeft: `4px solid ${borderColor}`,
+          backgroundColor: isLowConf && filled ? '#fef2f2' : isMedConf && filled ? '#fffbeb' : undefined,
         }}
       >
         <option value="">--</option>
@@ -479,6 +520,7 @@ function ReviewPageInner() {
   const downloadRef = useRef<HTMLAnchorElement>(null);
 
   const [data, setData] = useState<IntakeData>(createEmptyIntakeData());
+  const [confidenceMap, setConfidenceMap] = useState<Record<string, 'high' | 'medium' | 'low'>>({});
   const [loaded, setLoaded] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
@@ -557,6 +599,10 @@ function ReviewPageInner() {
       try {
         const parsed: IntakeData = JSON.parse(raw);
         setData(mergeWithTemplate(parsed));
+        // Load confidence map if present
+        if (parsed.confidence && typeof parsed.confidence === 'object') {
+          setConfidenceMap(parsed.confidence as Record<string, 'high' | 'medium' | 'low'>);
+        }
         setLoaded(true);
       } catch {
         router.push('/');
@@ -730,6 +776,11 @@ function ReviewPageInner() {
   const petitionerName = [data.petitioner.given_name, data.petitioner.family_name].filter(Boolean).join(' ') || 'Petitioner';
   const beneficiaryName = [data.beneficiary.given_name, data.beneficiary.family_name].filter(Boolean).join(' ') || 'Beneficiary';
 
+  // Confidence lookup helper
+  const conf = (path: string): 'high' | 'medium' | 'low' | undefined => {
+    return confidenceMap[path] as 'high' | 'medium' | 'low' | undefined;
+  };
+
   /* Count completed fields */
   const countFields = (obj: Record<string, unknown>, prefix = ''): { total: number; filled: number } => {
     let total = 0;
@@ -782,6 +833,25 @@ function ReviewPageInner() {
       >
         AI-extracted data may contain errors from handwriting interpretation. Please verify all fields before generating the PDF.
       </div>
+
+      {/* Confidence summary */}
+      {Object.keys(confidenceMap).length > 0 && (() => {
+        const lowFields = Object.entries(confidenceMap).filter(([, v]) => v === 'low');
+        const medFields = Object.entries(confidenceMap).filter(([, v]) => v === 'medium');
+        if (lowFields.length === 0 && medFields.length === 0) return null;
+        return (
+          <div className="rounded px-4 py-3 mb-4 text-sm" style={{ backgroundColor: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
+            <div className="font-semibold mb-1">
+              {lowFields.length > 0 && <span>{lowFields.length} field{lowFields.length > 1 ? 's' : ''} need verification</span>}
+              {lowFields.length > 0 && medFields.length > 0 && <span> &middot; </span>}
+              {medFields.length > 0 && <span style={{ color: '#92400e' }}>{medFields.length} field{medFields.length > 1 ? 's' : ''} should be checked</span>}
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+              Fields marked <span style={{ color: '#dc2626', fontWeight: 600 }}>Verify</span> (red) had unclear handwriting. Fields marked <span style={{ color: '#d97706', fontWeight: 600 }}>Check</span> (orange) had some ambiguity. Scroll down to review them.
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Progress counter */}
       <div className="mb-4">
@@ -865,33 +935,33 @@ function ReviewPageInner() {
       <Section title="2. Petitioner Information">
         <SubHeading text="Information About You (Petitioner)" />
         <Row>
-          <Field label="Family Name" value={data.petitioner.family_name} onChange={(v) => updatePetitioner('family_name', v)} />
-          <Field label="Given Name" value={data.petitioner.given_name} onChange={(v) => updatePetitioner('given_name', v)} />
-          <Field label="Middle Name" value={data.petitioner.middle_name} onChange={(v) => updatePetitioner('middle_name', v)} />
+          <Field label="Family Name" value={data.petitioner.family_name} onChange={(v) => updatePetitioner('family_name', v)} confidence={conf('petitioner.family_name')} />
+          <Field label="Given Name" value={data.petitioner.given_name} onChange={(v) => updatePetitioner('given_name', v)} confidence={conf('petitioner.given_name')} />
+          <Field label="Middle Name" value={data.petitioner.middle_name} onChange={(v) => updatePetitioner('middle_name', v)} confidence={conf('petitioner.middle_name')} />
         </Row>
         <Row>
-          <Field label="SSN" value={data.petitioner.ssn} onChange={(v) => updatePetitioner('ssn', v)} format="ssn" masked={petitionerSSNMasked} onToggleMask={() => setPetitionerSSNMasked((p) => !p)} error={validateSSN(data.petitioner.ssn)} />
-          <Field label="Date of Birth" value={data.petitioner.date_of_birth} onChange={(v) => updatePetitioner('date_of_birth', v)} format="date" error={validateDate(data.petitioner.date_of_birth)} />
-          <SelectField label="Sex" value={data.petitioner.sex} onChange={(v) => updatePetitioner('sex', v)} options={SEX_OPTIONS} />
+          <Field label="SSN" value={data.petitioner.ssn} onChange={(v) => updatePetitioner('ssn', v)} format="ssn" masked={petitionerSSNMasked} onToggleMask={() => setPetitionerSSNMasked((p) => !p)} error={validateSSN(data.petitioner.ssn)} confidence={conf('petitioner.ssn')} />
+          <Field label="Date of Birth" value={data.petitioner.date_of_birth} onChange={(v) => updatePetitioner('date_of_birth', v)} format="date" error={validateDate(data.petitioner.date_of_birth)} confidence={conf('petitioner.date_of_birth')} />
+          <SelectField label="Sex" value={data.petitioner.sex} onChange={(v) => updatePetitioner('sex', v)} options={SEX_OPTIONS} confidence={conf('petitioner.sex')} />
         </Row>
         <Row2>
-          <Field label="City of Birth" value={data.petitioner.city_of_birth} onChange={(v) => updatePetitioner('city_of_birth', v)} />
-          <Field label="Country of Birth" value={data.petitioner.country_of_birth} onChange={(v) => updatePetitioner('country_of_birth', v)} />
+          <Field label="City of Birth" value={data.petitioner.city_of_birth} onChange={(v) => updatePetitioner('city_of_birth', v)} confidence={conf('petitioner.city_of_birth')} />
+          <Field label="Country of Birth" value={data.petitioner.country_of_birth} onChange={(v) => updatePetitioner('country_of_birth', v)} confidence={conf('petitioner.country_of_birth')} />
         </Row2>
 
         <SubHeading text="Mailing Address" />
         <Row>
-          <Field label="Street" value={data.petitioner.mailing_address.street} onChange={(v) => updatePetitionerAddress('street', v)} className="sm:col-span-2" />
-          <SelectField label="Apt/Ste/Flr" value={data.petitioner.mailing_address.apt_ste_flr} onChange={(v) => updatePetitionerAddress('apt_ste_flr', v)} options={APT_OPTIONS} />
+          <Field label="Street" value={data.petitioner.mailing_address.street} onChange={(v) => updatePetitionerAddress('street', v)} className="sm:col-span-2" confidence={conf('petitioner.mailing_address.street')} />
+          <SelectField label="Apt/Ste/Flr" value={data.petitioner.mailing_address.apt_ste_flr} onChange={(v) => updatePetitionerAddress('apt_ste_flr', v)} options={APT_OPTIONS} confidence={conf('petitioner.mailing_address.apt_ste_flr')} />
         </Row>
         <Row>
-          <Field label="Unit Number" value={data.petitioner.mailing_address.unit_number} onChange={(v) => updatePetitionerAddress('unit_number', v)} />
-          <Field label="City" value={data.petitioner.mailing_address.city} onChange={(v) => updatePetitionerAddress('city', v)} />
-          <Field label="State" value={data.petitioner.mailing_address.state} onChange={(v) => updatePetitionerAddress('state', v)} error={validateState(data.petitioner.mailing_address.state)} />
+          <Field label="Unit Number" value={data.petitioner.mailing_address.unit_number} onChange={(v) => updatePetitionerAddress('unit_number', v)} confidence={conf('petitioner.mailing_address.unit_number')} />
+          <Field label="City" value={data.petitioner.mailing_address.city} onChange={(v) => updatePetitionerAddress('city', v)} confidence={conf('petitioner.mailing_address.city')} />
+          <Field label="State" value={data.petitioner.mailing_address.state} onChange={(v) => updatePetitionerAddress('state', v)} error={validateState(data.petitioner.mailing_address.state)} confidence={conf('petitioner.mailing_address.state')} />
         </Row>
         <Row>
-          <Field label="ZIP Code" value={data.petitioner.mailing_address.zip} onChange={(v) => updatePetitionerAddress('zip', v)} />
-          <Field label="Country" value={data.petitioner.mailing_address.country} onChange={(v) => updatePetitionerAddress('country', v)} />
+          <Field label="ZIP Code" value={data.petitioner.mailing_address.zip} onChange={(v) => updatePetitionerAddress('zip', v)} confidence={conf('petitioner.mailing_address.zip')} />
+          <Field label="Country" value={data.petitioner.mailing_address.country} onChange={(v) => updatePetitionerAddress('country', v)} confidence={conf('petitioner.mailing_address.country')} />
         </Row>
         <div className="mb-4">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -907,43 +977,43 @@ function ReviewPageInner() {
 
         <SubHeading text="Marital Information" />
         <Row>
-          <Field label="Times Married" value={data.petitioner.times_married} onChange={(v) => updatePetitioner('times_married', v)} />
-          <SelectField label="Marital Status" value={data.petitioner.marital_status} onChange={(v) => updatePetitioner('marital_status', v)} options={MARITAL_OPTIONS} />
-          <Field label="Date of Marriage" value={data.petitioner.date_of_marriage} onChange={(v) => updatePetitioner('date_of_marriage', v)} format="date" error={validateDate(data.petitioner.date_of_marriage)} />
+          <Field label="Times Married" value={data.petitioner.times_married} onChange={(v) => updatePetitioner('times_married', v)} confidence={conf('petitioner.times_married')} />
+          <SelectField label="Marital Status" value={data.petitioner.marital_status} onChange={(v) => updatePetitioner('marital_status', v)} options={MARITAL_OPTIONS} confidence={conf('petitioner.marital_status')} />
+          <Field label="Date of Marriage" value={data.petitioner.date_of_marriage} onChange={(v) => updatePetitioner('date_of_marriage', v)} format="date" error={validateDate(data.petitioner.date_of_marriage)} confidence={conf('petitioner.date_of_marriage')} />
         </Row>
         <Row>
-          <Field label="Marriage City" value={data.petitioner.marriage_city} onChange={(v) => updatePetitioner('marriage_city', v)} />
-          <Field label="Marriage State" value={data.petitioner.marriage_state} onChange={(v) => updatePetitioner('marriage_state', v)} error={validateState(data.petitioner.marriage_state)} />
-          <Field label="Marriage Country" value={data.petitioner.marriage_country} onChange={(v) => updatePetitioner('marriage_country', v)} />
+          <Field label="Marriage City" value={data.petitioner.marriage_city} onChange={(v) => updatePetitioner('marriage_city', v)} confidence={conf('petitioner.marriage_city')} />
+          <Field label="Marriage State" value={data.petitioner.marriage_state} onChange={(v) => updatePetitioner('marriage_state', v)} error={validateState(data.petitioner.marriage_state)} confidence={conf('petitioner.marriage_state')} />
+          <Field label="Marriage Country" value={data.petitioner.marriage_country} onChange={(v) => updatePetitioner('marriage_country', v)} confidence={conf('petitioner.marriage_country')} />
         </Row>
 
         <SubHeading text="Spouse" />
         <Row>
-          <Field label="Spouse Family Name" value={data.petitioner.spouse_family_name} onChange={(v) => updatePetitioner('spouse_family_name', v)} />
-          <Field label="Given Name" value={data.petitioner.spouse_given_name} onChange={(v) => updatePetitioner('spouse_given_name', v)} />
-          <Field label="Middle Name" value={data.petitioner.spouse_middle_name} onChange={(v) => updatePetitioner('spouse_middle_name', v)} />
+          <Field label="Spouse Family Name" value={data.petitioner.spouse_family_name} onChange={(v) => updatePetitioner('spouse_family_name', v)} confidence={conf('petitioner.spouse_family_name')} />
+          <Field label="Given Name" value={data.petitioner.spouse_given_name} onChange={(v) => updatePetitioner('spouse_given_name', v)} confidence={conf('petitioner.spouse_given_name')} />
+          <Field label="Middle Name" value={data.petitioner.spouse_middle_name} onChange={(v) => updatePetitioner('spouse_middle_name', v)} confidence={conf('petitioner.spouse_middle_name')} />
         </Row>
 
         <SubHeading text="Parent 1 (Father)" />
         <Row>
-          <Field label="Family Name" value={data.petitioner.parent1_family_name} onChange={(v) => updatePetitioner('parent1_family_name', v)} />
-          <Field label="Given Name" value={data.petitioner.parent1_given_name} onChange={(v) => updatePetitioner('parent1_given_name', v)} />
-          <SelectField label="Sex" value={data.petitioner.parent1_sex || 'M'} onChange={(v) => updatePetitioner('parent1_sex', v)} options={SEX_OPTIONS} />
+          <Field label="Family Name" value={data.petitioner.parent1_family_name} onChange={(v) => updatePetitioner('parent1_family_name', v)} confidence={conf('petitioner.parent1_family_name')} />
+          <Field label="Given Name" value={data.petitioner.parent1_given_name} onChange={(v) => updatePetitioner('parent1_given_name', v)} confidence={conf('petitioner.parent1_given_name')} />
+          <SelectField label="Sex" value={data.petitioner.parent1_sex || 'M'} onChange={(v) => updatePetitioner('parent1_sex', v)} options={SEX_OPTIONS} confidence={conf('petitioner.parent1_sex')} />
         </Row>
         <Row2>
-          <Field label="Country of Birth" value={data.petitioner.parent1_country_of_birth} onChange={(v) => updatePetitioner('parent1_country_of_birth', v)} />
-          <Field label="Country of Residence" value={data.petitioner.parent1_country_of_residence} onChange={(v) => updatePetitioner('parent1_country_of_residence', v)} />
+          <Field label="Country of Birth" value={data.petitioner.parent1_country_of_birth} onChange={(v) => updatePetitioner('parent1_country_of_birth', v)} confidence={conf('petitioner.parent1_country_of_birth')} />
+          <Field label="Country of Residence" value={data.petitioner.parent1_country_of_residence} onChange={(v) => updatePetitioner('parent1_country_of_residence', v)} confidence={conf('petitioner.parent1_country_of_residence')} />
         </Row2>
 
         <SubHeading text="Parent 2 (Mother)" />
         <Row>
-          <Field label="Family Name" value={data.petitioner.parent2_family_name} onChange={(v) => updatePetitioner('parent2_family_name', v)} />
-          <Field label="Given Name" value={data.petitioner.parent2_given_name} onChange={(v) => updatePetitioner('parent2_given_name', v)} />
-          <SelectField label="Sex" value={data.petitioner.parent2_sex || 'F'} onChange={(v) => updatePetitioner('parent2_sex', v)} options={SEX_OPTIONS} />
+          <Field label="Family Name" value={data.petitioner.parent2_family_name} onChange={(v) => updatePetitioner('parent2_family_name', v)} confidence={conf('petitioner.parent2_family_name')} />
+          <Field label="Given Name" value={data.petitioner.parent2_given_name} onChange={(v) => updatePetitioner('parent2_given_name', v)} confidence={conf('petitioner.parent2_given_name')} />
+          <SelectField label="Sex" value={data.petitioner.parent2_sex || 'F'} onChange={(v) => updatePetitioner('parent2_sex', v)} options={SEX_OPTIONS} confidence={conf('petitioner.parent2_sex')} />
         </Row>
         <Row2>
-          <Field label="Country of Birth" value={data.petitioner.parent2_country_of_birth} onChange={(v) => updatePetitioner('parent2_country_of_birth', v)} />
-          <Field label="Country of Residence" value={data.petitioner.parent2_country_of_residence} onChange={(v) => updatePetitioner('parent2_country_of_residence', v)} />
+          <Field label="Country of Birth" value={data.petitioner.parent2_country_of_birth} onChange={(v) => updatePetitioner('parent2_country_of_birth', v)} confidence={conf('petitioner.parent2_country_of_birth')} />
+          <Field label="Country of Residence" value={data.petitioner.parent2_country_of_residence} onChange={(v) => updatePetitioner('parent2_country_of_residence', v)} confidence={conf('petitioner.parent2_country_of_residence')} />
         </Row2>
 
         <SubHeading text="Immigration Status" />
@@ -965,18 +1035,18 @@ function ReviewPageInner() {
 
         <SubHeading text="Employment" />
         <Row2>
-          <Field label="Employer Name" value={data.petitioner.employer_name} onChange={(v) => updatePetitioner('employer_name', v)} />
-          <Field label="Street" value={data.petitioner.employer_street} onChange={(v) => updatePetitioner('employer_street', v)} />
+          <Field label="Employer Name" value={data.petitioner.employer_name} onChange={(v) => updatePetitioner('employer_name', v)} confidence={conf('petitioner.employer_name')} />
+          <Field label="Street" value={data.petitioner.employer_street} onChange={(v) => updatePetitioner('employer_street', v)} confidence={conf('petitioner.employer_street')} />
         </Row2>
         <Row>
-          <Field label="City" value={data.petitioner.employer_city} onChange={(v) => updatePetitioner('employer_city', v)} />
-          <Field label="State" value={data.petitioner.employer_state} onChange={(v) => updatePetitioner('employer_state', v)} error={validateState(data.petitioner.employer_state)} />
-          <Field label="ZIP" value={data.petitioner.employer_zip} onChange={(v) => updatePetitioner('employer_zip', v)} />
+          <Field label="City" value={data.petitioner.employer_city} onChange={(v) => updatePetitioner('employer_city', v)} confidence={conf('petitioner.employer_city')} />
+          <Field label="State" value={data.petitioner.employer_state} onChange={(v) => updatePetitioner('employer_state', v)} error={validateState(data.petitioner.employer_state)} confidence={conf('petitioner.employer_state')} />
+          <Field label="ZIP" value={data.petitioner.employer_zip} onChange={(v) => updatePetitioner('employer_zip', v)} confidence={conf('petitioner.employer_zip')} />
         </Row>
         <Row>
-          <Field label="Country" value={data.petitioner.employer_country} onChange={(v) => updatePetitioner('employer_country', v)} />
-          <Field label="Occupation" value={data.petitioner.occupation} onChange={(v) => updatePetitioner('occupation', v)} />
-          <Field label="Date From" value={data.petitioner.employment_date_from} onChange={(v) => updatePetitioner('employment_date_from', v)} format="date" error={validateDate(data.petitioner.employment_date_from)} />
+          <Field label="Country" value={data.petitioner.employer_country} onChange={(v) => updatePetitioner('employer_country', v)} confidence={conf('petitioner.employer_country')} />
+          <Field label="Occupation" value={data.petitioner.occupation} onChange={(v) => updatePetitioner('occupation', v)} confidence={conf('petitioner.occupation')} />
+          <Field label="Date From" value={data.petitioner.employment_date_from} onChange={(v) => updatePetitioner('employment_date_from', v)} format="date" error={validateDate(data.petitioner.employment_date_from)} confidence={conf('petitioner.employment_date_from')} />
         </Row>
       </Section>
 
@@ -985,17 +1055,17 @@ function ReviewPageInner() {
           ============================================================ */}
       <Section title="3. Biographic Information">
         <Row2>
-          <SelectField label="Ethnicity" value={data.petitioner.ethnicity} onChange={(v) => updatePetitioner('ethnicity', v)} options={ETHNICITY_OPTIONS} />
-          <SelectField label="Race" value={data.petitioner.race} onChange={(v) => updatePetitioner('race', v)} options={RACE_OPTIONS} />
+          <SelectField label="Ethnicity" value={data.petitioner.ethnicity} onChange={(v) => updatePetitioner('ethnicity', v)} options={ETHNICITY_OPTIONS} confidence={conf('petitioner.ethnicity')} />
+          <SelectField label="Race" value={data.petitioner.race} onChange={(v) => updatePetitioner('race', v)} options={RACE_OPTIONS} confidence={conf('petitioner.race')} />
         </Row2>
         <Row>
-          <SelectField label="Height (Feet)" value={data.petitioner.height_feet} onChange={(v) => updatePetitioner('height_feet', v)} options={HEIGHT_FEET} />
-          <SelectField label="Height (Inches)" value={data.petitioner.height_inches} onChange={(v) => updatePetitioner('height_inches', v)} options={HEIGHT_INCHES} />
-          <Field label="Weight (lbs)" value={data.petitioner.weight_lbs} onChange={(v) => updatePetitioner('weight_lbs', v)} />
+          <SelectField label="Height (Feet)" value={data.petitioner.height_feet} onChange={(v) => updatePetitioner('height_feet', v)} options={HEIGHT_FEET} confidence={conf('petitioner.height_feet')} />
+          <SelectField label="Height (Inches)" value={data.petitioner.height_inches} onChange={(v) => updatePetitioner('height_inches', v)} options={HEIGHT_INCHES} confidence={conf('petitioner.height_inches')} />
+          <Field label="Weight (lbs)" value={data.petitioner.weight_lbs} onChange={(v) => updatePetitioner('weight_lbs', v)} confidence={conf('petitioner.weight_lbs')} />
         </Row>
         <Row2>
-          <SelectField label="Eye Color" value={data.petitioner.eye_color} onChange={(v) => updatePetitioner('eye_color', v)} options={EYE_COLORS} />
-          <SelectField label="Hair Color" value={data.petitioner.hair_color} onChange={(v) => updatePetitioner('hair_color', v)} options={HAIR_COLORS} />
+          <SelectField label="Eye Color" value={data.petitioner.eye_color} onChange={(v) => updatePetitioner('eye_color', v)} options={EYE_COLORS} confidence={conf('petitioner.eye_color')} />
+          <SelectField label="Hair Color" value={data.petitioner.hair_color} onChange={(v) => updatePetitioner('hair_color', v)} options={HAIR_COLORS} confidence={conf('petitioner.hair_color')} />
         </Row2>
       </Section>
 
@@ -1005,79 +1075,79 @@ function ReviewPageInner() {
       <Section title="4. Beneficiary Information">
         <SubHeading text="Information About Beneficiary" />
         <Row>
-          <Field label="Family Name" value={data.beneficiary.family_name} onChange={(v) => updateBeneficiary('family_name', v)} />
-          <Field label="Given Name" value={data.beneficiary.given_name} onChange={(v) => updateBeneficiary('given_name', v)} />
-          <Field label="Middle Name" value={data.beneficiary.middle_name} onChange={(v) => updateBeneficiary('middle_name', v)} />
+          <Field label="Family Name" value={data.beneficiary.family_name} onChange={(v) => updateBeneficiary('family_name', v)} confidence={conf('beneficiary.family_name')} />
+          <Field label="Given Name" value={data.beneficiary.given_name} onChange={(v) => updateBeneficiary('given_name', v)} confidence={conf('beneficiary.given_name')} />
+          <Field label="Middle Name" value={data.beneficiary.middle_name} onChange={(v) => updateBeneficiary('middle_name', v)} confidence={conf('beneficiary.middle_name')} />
         </Row>
         <Row>
-          <Field label="SSN" value={data.beneficiary.ssn} onChange={(v) => updateBeneficiary('ssn', v)} format="ssn" masked={beneficiarySSNMasked} onToggleMask={() => setBeneficiarySSNMasked((p) => !p)} error={validateSSN(data.beneficiary.ssn)} />
-          <Field label="Date of Birth" value={data.beneficiary.date_of_birth} onChange={(v) => updateBeneficiary('date_of_birth', v)} format="date" error={validateDate(data.beneficiary.date_of_birth)} />
-          <SelectField label="Sex" value={data.beneficiary.sex} onChange={(v) => updateBeneficiary('sex', v)} options={SEX_OPTIONS} />
+          <Field label="SSN" value={data.beneficiary.ssn} onChange={(v) => updateBeneficiary('ssn', v)} format="ssn" masked={beneficiarySSNMasked} onToggleMask={() => setBeneficiarySSNMasked((p) => !p)} error={validateSSN(data.beneficiary.ssn)} confidence={conf('beneficiary.ssn')} />
+          <Field label="Date of Birth" value={data.beneficiary.date_of_birth} onChange={(v) => updateBeneficiary('date_of_birth', v)} format="date" error={validateDate(data.beneficiary.date_of_birth)} confidence={conf('beneficiary.date_of_birth')} />
+          <SelectField label="Sex" value={data.beneficiary.sex} onChange={(v) => updateBeneficiary('sex', v)} options={SEX_OPTIONS} confidence={conf('beneficiary.sex')} />
         </Row>
         <Row2>
-          <Field label="City of Birth" value={data.beneficiary.city_of_birth} onChange={(v) => updateBeneficiary('city_of_birth', v)} />
-          <Field label="Country of Birth" value={data.beneficiary.country_of_birth} onChange={(v) => updateBeneficiary('country_of_birth', v)} />
+          <Field label="City of Birth" value={data.beneficiary.city_of_birth} onChange={(v) => updateBeneficiary('city_of_birth', v)} confidence={conf('beneficiary.city_of_birth')} />
+          <Field label="Country of Birth" value={data.beneficiary.country_of_birth} onChange={(v) => updateBeneficiary('country_of_birth', v)} confidence={conf('beneficiary.country_of_birth')} />
         </Row2>
 
         <SubHeading text="Current Address" />
         <Row>
-          <Field label="Street" value={data.beneficiary.current_address.street} onChange={(v) => updateBeneficiaryAddress('street', v)} className="sm:col-span-2" />
-          <SelectField label="Apt/Ste/Flr" value={data.beneficiary.current_address.apt_ste_flr} onChange={(v) => updateBeneficiaryAddress('apt_ste_flr', v)} options={APT_OPTIONS} />
+          <Field label="Street" value={data.beneficiary.current_address.street} onChange={(v) => updateBeneficiaryAddress('street', v)} className="sm:col-span-2" confidence={conf('beneficiary.current_address.street')} />
+          <SelectField label="Apt/Ste/Flr" value={data.beneficiary.current_address.apt_ste_flr} onChange={(v) => updateBeneficiaryAddress('apt_ste_flr', v)} options={APT_OPTIONS} confidence={conf('beneficiary.current_address.apt_ste_flr')} />
         </Row>
         <Row>
-          <Field label="Unit Number" value={data.beneficiary.current_address.unit_number} onChange={(v) => updateBeneficiaryAddress('unit_number', v)} />
-          <Field label="City" value={data.beneficiary.current_address.city} onChange={(v) => updateBeneficiaryAddress('city', v)} />
-          <Field label="State" value={data.beneficiary.current_address.state} onChange={(v) => updateBeneficiaryAddress('state', v)} error={validateState(data.beneficiary.current_address.state)} />
+          <Field label="Unit Number" value={data.beneficiary.current_address.unit_number} onChange={(v) => updateBeneficiaryAddress('unit_number', v)} confidence={conf('beneficiary.current_address.unit_number')} />
+          <Field label="City" value={data.beneficiary.current_address.city} onChange={(v) => updateBeneficiaryAddress('city', v)} confidence={conf('beneficiary.current_address.city')} />
+          <Field label="State" value={data.beneficiary.current_address.state} onChange={(v) => updateBeneficiaryAddress('state', v)} error={validateState(data.beneficiary.current_address.state)} confidence={conf('beneficiary.current_address.state')} />
         </Row>
         <Row>
-          <Field label="ZIP Code" value={data.beneficiary.current_address.zip} onChange={(v) => updateBeneficiaryAddress('zip', v)} />
-          <Field label="Country" value={data.beneficiary.current_address.country} onChange={(v) => updateBeneficiaryAddress('country', v)} />
-          <Field label="Phone" value={data.beneficiary.phone} onChange={(v) => updateBeneficiary('phone', v)} format="phone" />
+          <Field label="ZIP Code" value={data.beneficiary.current_address.zip} onChange={(v) => updateBeneficiaryAddress('zip', v)} confidence={conf('beneficiary.current_address.zip')} />
+          <Field label="Country" value={data.beneficiary.current_address.country} onChange={(v) => updateBeneficiaryAddress('country', v)} confidence={conf('beneficiary.current_address.country')} />
+          <Field label="Phone" value={data.beneficiary.phone} onChange={(v) => updateBeneficiary('phone', v)} format="phone" confidence={conf('beneficiary.phone')} />
         </Row>
 
         <SubHeading text="Marital Information" />
         <Row>
-          <Field label="Times Married" value={data.beneficiary.times_married} onChange={(v) => updateBeneficiary('times_married', v)} />
-          <SelectField label="Marital Status" value={data.beneficiary.marital_status} onChange={(v) => updateBeneficiary('marital_status', v)} options={MARITAL_OPTIONS} />
-          <Field label="Date of Marriage" value={data.beneficiary.date_of_marriage} onChange={(v) => updateBeneficiary('date_of_marriage', v)} format="date" error={validateDate(data.beneficiary.date_of_marriage)} />
+          <Field label="Times Married" value={data.beneficiary.times_married} onChange={(v) => updateBeneficiary('times_married', v)} confidence={conf('beneficiary.times_married')} />
+          <SelectField label="Marital Status" value={data.beneficiary.marital_status} onChange={(v) => updateBeneficiary('marital_status', v)} options={MARITAL_OPTIONS} confidence={conf('beneficiary.marital_status')} />
+          <Field label="Date of Marriage" value={data.beneficiary.date_of_marriage} onChange={(v) => updateBeneficiary('date_of_marriage', v)} format="date" error={validateDate(data.beneficiary.date_of_marriage)} confidence={conf('beneficiary.date_of_marriage')} />
         </Row>
         <Row>
-          <Field label="Marriage City" value={data.beneficiary.marriage_city} onChange={(v) => updateBeneficiary('marriage_city', v)} />
-          <Field label="Marriage State" value={data.beneficiary.marriage_state} onChange={(v) => updateBeneficiary('marriage_state', v)} error={validateState(data.beneficiary.marriage_state)} />
-          <Field label="Marriage Country" value={data.beneficiary.marriage_country} onChange={(v) => updateBeneficiary('marriage_country', v)} />
+          <Field label="Marriage City" value={data.beneficiary.marriage_city} onChange={(v) => updateBeneficiary('marriage_city', v)} confidence={conf('beneficiary.marriage_city')} />
+          <Field label="Marriage State" value={data.beneficiary.marriage_state} onChange={(v) => updateBeneficiary('marriage_state', v)} error={validateState(data.beneficiary.marriage_state)} confidence={conf('beneficiary.marriage_state')} />
+          <Field label="Marriage Country" value={data.beneficiary.marriage_country} onChange={(v) => updateBeneficiary('marriage_country', v)} confidence={conf('beneficiary.marriage_country')} />
         </Row>
 
         <SubHeading text="Entry Information" />
         <Row>
-          <SelectField label="Ever in U.S." value={data.beneficiary.ever_in_us} onChange={(v) => updateBeneficiary('ever_in_us', v)} options={YES_NO} />
-          <Field label="Class of Admission" value={data.beneficiary.class_of_admission} onChange={(v) => updateBeneficiary('class_of_admission', v)} />
-          <Field label="Date of Arrival" value={data.beneficiary.date_of_arrival} onChange={(v) => updateBeneficiary('date_of_arrival', v)} format="date" error={validateDate(data.beneficiary.date_of_arrival)} />
+          <SelectField label="Ever in U.S." value={data.beneficiary.ever_in_us} onChange={(v) => updateBeneficiary('ever_in_us', v)} options={YES_NO} confidence={conf('beneficiary.ever_in_us')} />
+          <Field label="Class of Admission" value={data.beneficiary.class_of_admission} onChange={(v) => updateBeneficiary('class_of_admission', v)} confidence={conf('beneficiary.class_of_admission')} />
+          <Field label="Date of Arrival" value={data.beneficiary.date_of_arrival} onChange={(v) => updateBeneficiary('date_of_arrival', v)} format="date" error={validateDate(data.beneficiary.date_of_arrival)} confidence={conf('beneficiary.date_of_arrival')} />
         </Row>
 
         <SubHeading text="Employment" />
         <Row2>
-          <Field label="Employer Name" value={data.beneficiary.employer_name} onChange={(v) => updateBeneficiary('employer_name', v)} />
-          <Field label="Street" value={data.beneficiary.employer_street} onChange={(v) => updateBeneficiary('employer_street', v)} />
+          <Field label="Employer Name" value={data.beneficiary.employer_name} onChange={(v) => updateBeneficiary('employer_name', v)} confidence={conf('beneficiary.employer_name')} />
+          <Field label="Street" value={data.beneficiary.employer_street} onChange={(v) => updateBeneficiary('employer_street', v)} confidence={conf('beneficiary.employer_street')} />
         </Row2>
         <Row>
-          <Field label="City" value={data.beneficiary.employer_city} onChange={(v) => updateBeneficiary('employer_city', v)} />
-          <Field label="State" value={data.beneficiary.employer_state} onChange={(v) => updateBeneficiary('employer_state', v)} error={validateState(data.beneficiary.employer_state)} />
-          <Field label="ZIP" value={data.beneficiary.employer_zip} onChange={(v) => updateBeneficiary('employer_zip', v)} />
+          <Field label="City" value={data.beneficiary.employer_city} onChange={(v) => updateBeneficiary('employer_city', v)} confidence={conf('beneficiary.employer_city')} />
+          <Field label="State" value={data.beneficiary.employer_state} onChange={(v) => updateBeneficiary('employer_state', v)} error={validateState(data.beneficiary.employer_state)} confidence={conf('beneficiary.employer_state')} />
+          <Field label="ZIP" value={data.beneficiary.employer_zip} onChange={(v) => updateBeneficiary('employer_zip', v)} confidence={conf('beneficiary.employer_zip')} />
         </Row>
         <Row2>
-          <Field label="Country" value={data.beneficiary.employer_country} onChange={(v) => updateBeneficiary('employer_country', v)} />
-          <Field label="Date Employment Began" value={data.beneficiary.employment_date_from} onChange={(v) => updateBeneficiary('employment_date_from', v)} format="date" error={validateDate(data.beneficiary.employment_date_from)} />
+          <Field label="Country" value={data.beneficiary.employer_country} onChange={(v) => updateBeneficiary('employer_country', v)} confidence={conf('beneficiary.employer_country')} />
+          <Field label="Date Employment Began" value={data.beneficiary.employment_date_from} onChange={(v) => updateBeneficiary('employment_date_from', v)} format="date" error={validateDate(data.beneficiary.employment_date_from)} confidence={conf('beneficiary.employment_date_from')} />
         </Row2>
 
         <SubHeading text="Immigration Proceedings" />
         <Row>
-          <SelectField label="In Proceedings" value={data.beneficiary.in_immigration_proceedings} onChange={(v) => updateBeneficiary('in_immigration_proceedings', v)} options={YES_NO} />
-          <SelectField label="Type" value={data.beneficiary.proceedings_type} onChange={(v) => updateBeneficiary('proceedings_type', v)} options={PROCEEDINGS_TYPES} />
-          <Field label="City" value={data.beneficiary.proceedings_city} onChange={(v) => updateBeneficiary('proceedings_city', v)} />
+          <SelectField label="In Proceedings" value={data.beneficiary.in_immigration_proceedings} onChange={(v) => updateBeneficiary('in_immigration_proceedings', v)} options={YES_NO} confidence={conf('beneficiary.in_immigration_proceedings')} />
+          <SelectField label="Type" value={data.beneficiary.proceedings_type} onChange={(v) => updateBeneficiary('proceedings_type', v)} options={PROCEEDINGS_TYPES} confidence={conf('beneficiary.proceedings_type')} />
+          <Field label="City" value={data.beneficiary.proceedings_city} onChange={(v) => updateBeneficiary('proceedings_city', v)} confidence={conf('beneficiary.proceedings_city')} />
         </Row>
         <Row2>
-          <Field label="State" value={data.beneficiary.proceedings_state} onChange={(v) => updateBeneficiary('proceedings_state', v)} error={validateState(data.beneficiary.proceedings_state)} />
-          <Field label="Date" value={data.beneficiary.proceedings_date} onChange={(v) => updateBeneficiary('proceedings_date', v)} format="date" error={validateDate(data.beneficiary.proceedings_date)} />
+          <Field label="State" value={data.beneficiary.proceedings_state} onChange={(v) => updateBeneficiary('proceedings_state', v)} error={validateState(data.beneficiary.proceedings_state)} confidence={conf('beneficiary.proceedings_state')} />
+          <Field label="Date" value={data.beneficiary.proceedings_date} onChange={(v) => updateBeneficiary('proceedings_date', v)} format="date" error={validateDate(data.beneficiary.proceedings_date)} confidence={conf('beneficiary.proceedings_date')} />
         </Row2>
       </Section>
 

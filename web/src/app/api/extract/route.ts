@@ -192,7 +192,12 @@ Return ONLY valid JSON, no markdown, no explanation.
     "passport_country": "",
     "passport_expiration": ""
   },
-  "relationship": "Spouse, Parent, Brother/Sister, or Child"
+  "relationship": "Spouse, Parent, Brother/Sister, or Child",
+  "confidence": {
+    "petitioner.family_name": "high",
+    "petitioner.ssn": "medium",
+    "beneficiary.date_of_arrival": "low"
+  }
 }
 
 IMPORTANT:
@@ -201,7 +206,14 @@ IMPORTANT:
 - For sex, use just "M" or "F"
 - For yes/no fields, use "Yes" or "No"
 - Read carefully - handwriting may be difficult
-- If city_of_birth and country_of_birth appear to be the same (e.g., both say "Thailand"), that's OK - record as written`;
+- If city_of_birth and country_of_birth appear to be the same (e.g., both say "Thailand"), that's OK - record as written
+
+CONFIDENCE SCORING:
+In the "confidence" object, rate your confidence for EVERY non-empty field you extracted. Use dot-path keys like "petitioner.family_name" or "beneficiary.ssn". Rates:
+- "high" = clearly readable, no ambiguity (>90% sure)
+- "medium" = readable but some characters were unclear, used context clues (70-90% sure)
+- "low" = guessed based on context, multiple interpretations possible (<70% sure)
+Only include fields that have values (skip empty fields). Be honest — if handwriting was messy, say "low".`;
 
 export async function POST(request: Request) {
   const startTime = Date.now();
