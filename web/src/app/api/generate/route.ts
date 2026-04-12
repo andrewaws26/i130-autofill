@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFBool, PDFDict } from 'pdf-lib';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { logApiCall } from '@/lib/api-logger';
@@ -76,6 +76,19 @@ export async function POST(request: Request) {
     const pdfPath = join(process.cwd(), 'public', 'i-130-blank.pdf');
     const pdfBytes = await readFile(pdfPath);
     const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+
+    // Remove XFA stream and set NeedAppearances (same approach as the working Python CLI)
+    // This converts the XFA form to a standard AcroForm that pdf-lib can handle
+    try {
+      const acroForm = pdfDoc.catalog.lookup(PDFName.of('AcroForm'), PDFDict);
+      if (acroForm) {
+        acroForm.delete(PDFName.of('XFA'));
+        acroForm.set(PDFName.of('NeedAppearances'), PDFBool.True);
+      }
+    } catch (xfaErr) {
+      console.warn('Could not remove XFA (non-fatal):', xfaErr);
+    }
+
     const form = pdfDoc.getForm();
 
     // ===== PAGE 1 - Relationship + Petitioner =====
