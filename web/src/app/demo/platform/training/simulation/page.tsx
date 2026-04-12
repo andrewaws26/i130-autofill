@@ -16,11 +16,11 @@ const SCENARIO = I130_SPOUSAL_SCENARIO;
 const TOTAL_PHASES = SCENARIO.phases.length;
 const DECISION_PHASES = SCENARIO.phases.filter(p => p.decision).length;
 
-type PhaseStatus = 'event' | 'chat' | 'decision' | 'feedback' | 'complete';
+type PhaseStatus = 'intro' | 'event' | 'chat' | 'decision' | 'feedback' | 'complete';
 
 export default function SimulationPage() {
   const [currentPhase, setCurrentPhase] = useState(1);
-  const [phaseStatus, setPhaseStatus] = useState<PhaseStatus>('event');
+  const [phaseStatus, setPhaseStatus] = useState<PhaseStatus>('intro');
   const [decisions, setDecisions] = useState<PhaseDecision[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -234,7 +234,58 @@ export default function SimulationPage() {
       </div>
 
       {/* ── Main Layout ───────────────────────────────────────────── */}
-      {isComplete ? (
+      {phaseStatus === 'intro' ? (
+        <div style={{ maxWidth: 640, margin: '0 auto' }}>
+          <h2
+            className="text-2xl md:text-3xl font-semibold mb-3 text-center"
+            style={{ fontFamily: "var(--font-source-serif), 'Source Serif 4', serif", color: 'var(--heading)' }}
+          >
+            Case Simulation: I-130 Spousal Petition
+          </h2>
+          <p className="text-sm text-center mb-6" style={{ color: 'var(--muted)' }}>
+            Practice handling a real immigration case from start to finish.
+          </p>
+
+          <div className="rounded-lg p-6 mb-6" style={{ background: 'var(--card-bg)', border: '1px solid var(--border-light)' }}>
+            <div className="text-xs font-bold uppercase mb-3" style={{ color: 'var(--accent-gold)', letterSpacing: '0.04em' }}>
+              How this works
+            </div>
+            <div className="flex flex-col gap-3 text-sm" style={{ color: 'var(--foreground)' }}>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>1</span>
+                <span><strong>Read the scenario</strong> — each phase starts with something happening in the case.</span>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>2</span>
+                <span><strong>Talk to the client</strong> — some phases let you chat with the client (AI-powered). You can ask questions or respond to their concerns.</span>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>3</span>
+                <span><strong>Answer a question</strong> — after reading the scenario (and talking to the client), you will be asked to make a decision. Pick the best answer from the options.</span>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>4</span>
+                <span><strong>Get feedback</strong> — the AI evaluates your decision and Attorney Attum shares expert insight.</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg p-6 mb-6" style={{ background: '#f0f4f8', border: '1px solid #d3dce6' }}>
+            <div className="text-xs font-bold uppercase mb-2" style={{ color: '#4a6785', letterSpacing: '0.04em' }}>
+              The case
+            </div>
+            <p className="text-sm leading-relaxed" style={{ color: '#4a6785' }}>
+              <strong>Kho Meh</strong> (US Citizen, born in Thailand) wants to petition for her husband <strong>Geovany Cardona Hernandez</strong> (Guatemala). He entered the US on asylum in 2019 and has pending removal proceedings. You will handle this case through <strong>{TOTAL_PHASES} phases</strong> and make <strong>{DECISION_PHASES} decisions</strong>. At the end, you will receive a score and detailed feedback.
+            </p>
+          </div>
+
+          <div className="text-center">
+            <button onClick={() => setPhaseStatus('event')} style={styles.goldButton}>
+              Begin Simulation
+            </button>
+          </div>
+        </div>
+      ) : isComplete ? (
         <ReportCard decisions={decisions} scoreData={scoreData} />
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
@@ -247,11 +298,35 @@ export default function SimulationPage() {
 
             {/* Phase title */}
             <h2
-              className="text-xl md:text-2xl font-semibold mb-4"
+              className="text-xl md:text-2xl font-semibold mb-2"
               style={{ fontFamily: "var(--font-source-serif), 'Source Serif 4', serif", color: 'var(--heading)' }}
             >
               Phase {phase!.number}: {phase!.title}
             </h2>
+
+            {/* Current step indicator */}
+            <div className="flex items-center gap-2 mb-4">
+              {['Read scenario', phase!.hasClientChat ? 'Talk to client' : null, phase!.decision ? 'Answer question' : null, phase!.decision ? 'Get feedback' : null].filter(Boolean).map((step, i) => {
+                const stepMap: Record<string, number> = { 'Read scenario': 0, 'Talk to client': 1, 'Answer question': phase!.hasClientChat ? 2 : 1, 'Get feedback': phase!.hasClientChat ? 3 : 2 };
+                const statusMap: Record<PhaseStatus, number> = { intro: -1, event: 0, chat: 1, decision: phase!.hasClientChat ? 2 : 1, feedback: phase!.hasClientChat ? 3 : 2, complete: 99 };
+                const stepIdx = stepMap[step!] ?? i;
+                const currentIdx = statusMap[phaseStatus];
+                const isActive = stepIdx === currentIdx;
+                const isDone = stepIdx < currentIdx;
+                return (
+                  <div key={step} className="flex items-center gap-1.5">
+                    {i > 0 && <div className="w-4 h-px" style={{ backgroundColor: isDone ? '#16a34a' : 'var(--border-light)' }} />}
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{
+                      backgroundColor: isActive ? 'var(--accent-gold)' : isDone ? '#16a34a' : 'var(--background)',
+                      color: isActive || isDone ? '#fff' : 'var(--muted)',
+                      border: !isActive && !isDone ? '1px solid var(--border-light)' : 'none',
+                    }}>
+                      {isDone ? '\u2713' : ''} {step}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Event card */}
             <div
@@ -268,7 +343,7 @@ export default function SimulationPage() {
 
             {phaseStatus === 'event' && (
               <button onClick={advanceFromEvent} style={styles.goldButton}>
-                {phase!.hasClientChat ? 'Talk to the client' : phase!.decision ? 'Make your decision' : 'Continue'}
+                {phase!.hasClientChat ? 'Talk to the client' : phase!.decision ? 'Answer the question' : 'Continue'}
               </button>
             )}
 
@@ -347,7 +422,7 @@ export default function SimulationPage() {
                 </div>
                 {phaseStatus === 'chat' && phaseChatMessages.filter(m => m.from === 'associate').length >= 1 && (
                   <button onClick={advanceFromChat} style={{ ...styles.goldButton, marginTop: 12 }}>
-                    {phase!.decision ? 'Make your decision' : 'Continue to next phase'}
+                    {phase!.decision ? 'Done talking — answer the question' : 'Continue to next phase'}
                   </button>
                 )}
               </div>
