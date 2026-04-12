@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 
     setText(form, 'Pt2Line10_AptSteFlrNumber[0]', pAddr.unit_number || '');
     setText(form, 'Pt2Line10_CityOrTown[0]', pAddr.city || '');
-    selectDropdown(form, 'Pt2Line10_State[0]', pAddr.state || '');
+    setText(form, 'Pt2Line10_State[0]', pAddr.state || '');
     setText(form, 'Pt2Line10_ZipCode[0]', pAddr.zip || '');
     setText(form, 'Pt2Line10_Country[0]', pAddr.country || '');
 
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
     const pHist = (p?.address_history && p.address_history[0]) || {};
     setText(form, 'Pt2Line12_StreetNumberName[0]', pHist.street || '');
     setText(form, 'Pt2Line12_CityOrTown[0]', pHist.city || '');
-    selectDropdown(form, 'Pt2Line12_State[0]', pHist.state || '');
+    setText(form, 'Pt2Line12_State[0]', pHist.state || '');
     setText(form, 'Pt2Line12_ZipCode[0]', pHist.zip || '');
     setText(form, 'Pt2Line12_Country[0]', pHist.country || '');
     setText(form, 'Pt2Line13a_DateFrom[0]', pHist.date_from || '');
@@ -176,7 +176,7 @@ export async function POST(request: Request) {
 
     setText(form, 'Pt2Line18_DateOfMarriage[0]', p?.date_of_marriage || '');
     setText(form, 'Pt2Line19a_CityTown[0]', p?.marriage_city || '');
-    selectDropdown(form, 'Pt2Line19b_State[0]', p?.marriage_state || '');
+    setText(form, 'Pt2Line19b_State[0]', p?.marriage_state || '');
     setText(form, 'Pt2Line19d_Country[0]', p?.marriage_country || '');
 
     // Spouse name (note: PtLine not Pt2Line for family name)
@@ -233,15 +233,15 @@ export async function POST(request: Request) {
     setText(form, 'Pt2Line40_EmployerOrCompName[0]', p?.employer_name || '');
     setText(form, 'Pt2Line41_StreetNumberName[0]', p?.employer_street || '');
     setText(form, 'Pt2Line41_CityOrTown[0]', p?.employer_city || '');
-    selectDropdown(form, 'Pt2Line41_State[0]', p?.employer_state || '');
+    setText(form, 'Pt2Line41_State[0]', p?.employer_state || '');
     setText(form, 'Pt2Line41_ZipCode[0]', p?.employer_zip || '');
     setText(form, 'Pt2Line41_Country[0]', p?.employer_country || '');
     setText(form, 'Pt2Line42_Occupation[0]', p?.occupation || '');
     setText(form, 'Pt2Line43a_DateFrom[0]', p?.employment_date_from || '');
 
     // Biographic - Height
-    selectDropdown(form, 'Pt3Line3_HeightFeet[0]', p?.height_feet || '');
-    selectDropdown(form, 'Pt3Line3_HeightInches[0]', p?.height_inches || '');
+    setText(form, 'Pt3Line3_HeightFeet[0]', p?.height_feet || '');
+    setText(form, 'Pt3Line3_HeightInches[0]', p?.height_inches || '');
 
     // Weight - individual digits
     const weight = (p?.weight_lbs || '').toString().padStart(3, '0');
@@ -329,7 +329,7 @@ export async function POST(request: Request) {
 
     setText(form, 'Pt4Line11_AptSteFlrNumber[0]', bAddr.unit_number || '');
     setText(form, 'Pt4Line11_CityOrTown[0]', bAddr.city || '');
-    selectDropdown(form, 'Pt4Line11_State[0]', bAddr.state || '');
+    setText(form, 'Pt4Line11_State[0]', bAddr.state || '');
     setText(form, 'Pt4Line11_ZipCode[0]', bAddr.zip || '');
     setText(form, 'Pt4Line11_Country[0]', bAddr.country || '');
 
@@ -365,7 +365,7 @@ export async function POST(request: Request) {
 
     setText(form, 'Pt4Line19_DateOfMarriage[0]', b?.date_of_marriage || '');
     setText(form, 'Pt4Line20a_CityTown[0]', b?.marriage_city || '');
-    selectDropdown(form, 'Pt4Line20b_State[0]', b?.marriage_state || '');
+    setText(form, 'Pt4Line20b_State[0]', b?.marriage_state || '');
     setText(form, 'Pt4Line20d_Country[0]', b?.marriage_country || '');
 
     // Spouse of beneficiary = petitioner
@@ -391,7 +391,7 @@ export async function POST(request: Request) {
       } else if (coa.toLowerCase().startsWith('re') || coa.toLowerCase() === 'refugee') {
         coaValue = 'RE';
       }
-      selectDropdown(form, 'Pt4Line21a_ClassOfAdmission[0]', coaValue);
+      setText(form, 'Pt4Line21a_ClassOfAdmission[0]', coaValue);
     }
 
     setText(form, 'Pt4Line21c_DateOfArrival[0]', b?.date_of_arrival || '');
@@ -400,7 +400,7 @@ export async function POST(request: Request) {
     setText(form, 'Pt4Line26_NameOfCompany[0]', b?.employer_name || '');
     setText(form, 'Pt4Line26_StreetNumberName[0]', b?.employer_street || '');
     setText(form, 'Pt4Line26_CityOrTown[0]', b?.employer_city || '');
-    selectDropdown(form, 'Pt4Line26_State[0]', b?.employer_state || '');
+    setText(form, 'Pt4Line26_State[0]', b?.employer_state || '');
     setText(form, 'Pt4Line26_ZipCode[0]', b?.employer_zip || '');
     setText(form, 'Pt4Line26_Country[0]', b?.employer_country || '');
     setText(form, 'Pt4Line27_DateEmploymentBegan[0]', b?.employment_date_from || '');
@@ -425,7 +425,7 @@ export async function POST(request: Request) {
 
     // Proceedings location and date
     setText(form, 'Pt4Line55a_CityOrTown[0]', b?.proceedings_city || '');
-    selectDropdown(form, 'Pt4Line55b_State[0]', b?.proceedings_state || '');
+    setText(form, 'Pt4Line55b_State[0]', b?.proceedings_state || '');
     setText(form, 'Pt4Line56_Date[0]', b?.proceedings_date || '');
 
     // Beneficiary passport / travel document
@@ -451,7 +451,7 @@ export async function POST(request: Request) {
     setText(form, 'Pt4Line57_StreetNumberName[0]', lastAddr.street || '');
     setText(form, 'Pt4Line57_AptSteFlrNumber[0]', lastAddr.unit_number || '');
     setText(form, 'Pt4Line57_CityOrTown[0]', lastAddr.city || '');
-    selectDropdown(form, 'Pt4Line57_State[0]', lastAddr.state || '');
+    setText(form, 'Pt4Line57_State[0]', lastAddr.state || '');
     setText(form, 'Pt4Line57_ZipCode[0]', lastAddr.zip || '');
     setText(form, 'Pt4Line57_Country[0]', lastAddr.country || '');
 
