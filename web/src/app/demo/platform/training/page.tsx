@@ -352,16 +352,31 @@ export default function TrainingPage() {
                 <p className="text-sm mb-3" style={{ color: 'var(--muted)' }}>
                   {sim.description}
                 </p>
-                <button
-                  className="px-4 py-2 rounded-md text-sm font-medium"
-                  style={{
-                    background: 'var(--accent-gold)',
-                    color: '#fff',
-                    cursor: 'default',
-                  }}
-                >
-                  Start Simulation
-                </button>
+                {idx === 0 ? (
+                  <a
+                    href="/demo/platform/training/simulation"
+                    className="px-4 py-2 rounded-md text-sm font-medium inline-block"
+                    style={{
+                      background: 'var(--accent-gold)',
+                      color: '#fff',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Start Simulation
+                  </a>
+                ) : (
+                  <button
+                    className="px-4 py-2 rounded-md text-sm font-medium"
+                    style={{
+                      background: 'var(--accent-gold)',
+                      color: '#fff',
+                      cursor: 'default',
+                      opacity: 0.6,
+                    }}
+                  >
+                    Coming Soon
+                  </button>
+                )}
               </div>
               <span
                 style={{
