@@ -38,6 +38,8 @@ function checkBox(form: ReturnType<PDFDocument['getForm']>, fieldName: string) {
 function selectDropdown(form: ReturnType<PDFDocument['getForm']>, fieldName: string, value: string) {
   if (!value || !value.trim()) return;
   try {
+    const field = form.getField(fieldName);
+    if (!field) { failedFields.push(fieldName); return; }
     const dropdown = form.getDropdown(fieldName);
     const options = dropdown.getOptions();
     // Exact match first
@@ -472,8 +474,43 @@ export async function POST(request: Request) {
       pdfDoc.setSubject(`AutoFill warnings: The following fields could not be filled automatically and should be checked manually: ${failedFields.join(', ')}`);
     }
 
-    // Save and return
-    const filledPdfBytes = await pdfDoc.save();
+    // Save with fallback — XFA forms can have internal ref issues during save
+    let filledPdfBytes: Uint8Array;
+    try {
+      filledPdfBytes = await pdfDoc.save();
+    } catch (saveError) {
+      console.warn('Standard save failed, trying with flattened form:', saveError);
+      try {
+        // Flatten the form to remove interactive fields, then save
+        form.flatten();
+        filledPdfBytes = await pdfDoc.save();
+      } catch (flattenError) {
+        console.warn('Flattened save also failed, reloading PDF with minimal fills:', flattenError);
+        // Last resort: reload the blank PDF and only fill text fields (no dropdowns/checkboxes)
+        const freshPdfBytes = await readFile(pdfPath);
+        const freshDoc = await PDFDocument.load(freshPdfBytes, { ignoreEncryption: true });
+        const freshForm = freshDoc.getForm();
+
+        // Only fill the most critical text fields
+        const criticalFields: [string, string][] = [
+          ['Pt2Line4a_FamilyName[0]', p?.family_name || ''],
+          ['Pt2Line4b_GivenName[0]', p?.given_name || ''],
+          ['Pt2Line11_SSN[0]', removeDashes(p?.ssn || '')],
+          ['Pt2Line8_DateofBirth[0]', p?.date_of_birth || ''],
+          ['Pt4Line4a_FamilyName[0]', b?.family_name || ''],
+          ['Pt4Line4b_GivenName[0]', b?.given_name || ''],
+          ['Pt4Line3_SSN[0]', removeDashes(b?.ssn || '')],
+          ['Pt4Line9_DateOfBirth[0]', b?.date_of_birth || ''],
+        ];
+        for (const [field, value] of criticalFields) {
+          if (value) {
+            try { freshForm.getTextField(field).setText(value); } catch { /* skip */ }
+          }
+        }
+        freshDoc.setSubject('WARNING: This PDF was generated with limited field filling due to a technical issue. Please review all fields manually.');
+        filledPdfBytes = await freshDoc.save();
+      }
+    }
 
     // Audit log (no PII - only metadata)
     console.log(JSON.stringify({

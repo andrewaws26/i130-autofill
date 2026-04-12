@@ -4,9 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import {
   I130_SPOUSAL_SCENARIO,
-  type SimulationPhase,
   type PhaseDecision,
-  type ChatMessage,
   calculateScore,
   getGradeColor,
   getGradeLabel,
@@ -16,18 +14,15 @@ const SCENARIO = I130_SPOUSAL_SCENARIO;
 const TOTAL_PHASES = SCENARIO.phases.length;
 const DECISION_PHASES = SCENARIO.phases.filter(p => p.decision).length;
 
-type PhaseStatus = 'intro' | 'event' | 'chat' | 'decision' | 'feedback' | 'complete';
+type PhaseStatus = 'intro' | 'event' | 'decision' | 'feedback' | 'complete';
 
 export default function SimulationPage() {
   const [currentPhase, setCurrentPhase] = useState(1);
   const [phaseStatus, setPhaseStatus] = useState<PhaseStatus>('intro');
   const [decisions, setDecisions] = useState<PhaseDecision[]>([]);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [chatInput, setChatInput] = useState('');
   const [showGuidance, setShowGuidance] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
   const phase = SCENARIO.phases.find(p => p.number === currentPhase);
@@ -39,86 +34,14 @@ export default function SimulationPage() {
     topRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [currentPhase]);
 
-  // Scroll chat to bottom
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
-
-  // Add client opener message when entering chat
-  useEffect(() => {
-    if (phaseStatus === 'chat' && phase?.clientChatOpener) {
-      const alreadyHas = chatMessages.some(m => m.phase === currentPhase && m.from === 'client');
-      if (!alreadyHas) {
-        setChatMessages(prev => [...prev, {
-          phase: currentPhase,
-          from: 'client',
-          text: phase.clientChatOpener!,
-          emotion: currentPhase === 6 ? 'upset' : 'calm',
-        }]);
-      }
-    }
-  }, [phaseStatus, currentPhase, phase, chatMessages]);
-
   // ── Actions ─────────────────────────────────────────────────────────────
 
   const advanceFromEvent = () => {
-    if (phase?.hasClientChat) {
-      setPhaseStatus('chat');
-    } else if (phase?.decision) {
-      setPhaseStatus('decision');
-    } else if (phase?.eventType === 'resolution') {
-      // Final phase — show report
-      setPhaseStatus('complete');
-    }
-  };
-
-  const advanceFromChat = () => {
     if (phase?.decision) {
       setPhaseStatus('decision');
-    } else {
-      // Chat-only phase (resolution) — advance to next
-      advanceToNextPhase();
+    } else if (phase?.eventType === 'resolution') {
+      setPhaseStatus('complete');
     }
-  };
-
-  const sendChatMessage = async () => {
-    const msg = chatInput.trim();
-    if (!msg || isLoading) return;
-    setChatInput('');
-
-    setChatMessages(prev => [...prev, {
-      phase: currentPhase,
-      from: 'associate',
-      text: msg,
-    }]);
-
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/simulate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phase: currentPhase,
-          action: 'chat_message',
-          chatMessage: msg,
-        }),
-      });
-      const data = await res.json();
-      setChatMessages(prev => [...prev, {
-        phase: currentPhase,
-        from: 'client',
-        text: data.clientResponse || 'Thank you for explaining that to me.',
-        emotion: data.emotion || 'calm',
-      }]);
-    } catch {
-      setChatMessages(prev => [...prev, {
-        phase: currentPhase,
-        from: 'client',
-        text: 'I understand. Thank you.',
-        emotion: 'calm',
-      }]);
-    }
-    setIsLoading(false);
   };
 
   const submitDecision = async () => {
@@ -183,7 +106,6 @@ export default function SimulationPage() {
   if (!phase && !isComplete) return null;
 
   const currentDecision = decisions.find(d => d.phase === currentPhase);
-  const phaseChatMessages = chatMessages.filter(m => m.phase === currentPhase);
   const scoreData = calculateScore(decisions);
 
   return (
@@ -253,19 +175,15 @@ export default function SimulationPage() {
             <div className="flex flex-col gap-3 text-sm" style={{ color: 'var(--foreground)' }}>
               <div className="flex gap-3 items-start">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>1</span>
-                <span><strong>Read the scenario</strong> — each phase starts with something happening in the case.</span>
+                <span><strong>Read the scenario</strong> — each phase starts with something happening in the case. Sometimes the client will say something to you.</span>
               </div>
               <div className="flex gap-3 items-start">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>2</span>
-                <span><strong>Talk to the client</strong> — some phases let you chat with the client (AI-powered). You can ask questions or respond to their concerns.</span>
+                <span><strong>Answer the question</strong> — pick the best answer from the options. There is one correct answer per phase.</span>
               </div>
               <div className="flex gap-3 items-start">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>3</span>
-                <span><strong>Answer a question</strong> — after reading the scenario (and talking to the client), you will be asked to make a decision. Pick the best answer from the options.</span>
-              </div>
-              <div className="flex gap-3 items-start">
-                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--accent-gold)', color: '#fff' }}>4</span>
-                <span><strong>Get feedback</strong> — the AI evaluates your decision and Attorney Attum shares expert insight.</span>
+                <span><strong>Get feedback</strong> — the AI evaluates your decision and Attorney Attum shares expert insight. Then you move to the next phase.</span>
               </div>
             </div>
           </div>
@@ -305,28 +223,28 @@ export default function SimulationPage() {
             </h2>
 
             {/* Current step indicator */}
-            <div className="flex items-center gap-2 mb-4">
-              {['Read scenario', phase!.hasClientChat ? 'Talk to client' : null, phase!.decision ? 'Answer question' : null, phase!.decision ? 'Get feedback' : null].filter(Boolean).map((step, i) => {
-                const stepMap: Record<string, number> = { 'Read scenario': 0, 'Talk to client': 1, 'Answer question': phase!.hasClientChat ? 2 : 1, 'Get feedback': phase!.hasClientChat ? 3 : 2 };
-                const statusMap: Record<PhaseStatus, number> = { intro: -1, event: 0, chat: 1, decision: phase!.hasClientChat ? 2 : 1, feedback: phase!.hasClientChat ? 3 : 2, complete: 99 };
-                const stepIdx = stepMap[step!] ?? i;
-                const currentIdx = statusMap[phaseStatus];
-                const isActive = stepIdx === currentIdx;
-                const isDone = stepIdx < currentIdx;
-                return (
-                  <div key={step} className="flex items-center gap-1.5">
-                    {i > 0 && <div className="w-4 h-px" style={{ backgroundColor: isDone ? '#16a34a' : 'var(--border-light)' }} />}
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{
-                      backgroundColor: isActive ? 'var(--accent-gold)' : isDone ? '#16a34a' : 'var(--background)',
-                      color: isActive || isDone ? '#fff' : 'var(--muted)',
-                      border: !isActive && !isDone ? '1px solid var(--border-light)' : 'none',
-                    }}>
-                      {isDone ? '\u2713' : ''} {step}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            {phase!.decision && (
+              <div className="flex items-center gap-2 mb-4">
+                {['Read scenario', 'Answer question', 'Get feedback'].map((step, i) => {
+                  const statusIdx: Record<PhaseStatus, number> = { intro: -1, event: 0, decision: 1, feedback: 2, complete: 99 };
+                  const currentIdx = statusIdx[phaseStatus];
+                  const isActive = i === currentIdx;
+                  const isDone = i < currentIdx;
+                  return (
+                    <div key={step} className="flex items-center gap-1.5">
+                      {i > 0 && <div className="w-4 h-px" style={{ backgroundColor: isDone ? '#16a34a' : 'var(--border-light)' }} />}
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{
+                        backgroundColor: isActive ? 'var(--accent-gold)' : isDone ? '#16a34a' : 'var(--background)',
+                        color: isActive || isDone ? '#fff' : 'var(--muted)',
+                        border: !isActive && !isDone ? '1px solid var(--border-light)' : 'none',
+                      }}>
+                        {isDone ? '\u2713' : ''} {step}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Event card */}
             <div
@@ -341,91 +259,27 @@ export default function SimulationPage() {
               </p>
             </div>
 
-            {phaseStatus === 'event' && (
-              <button onClick={advanceFromEvent} style={styles.goldButton}>
-                {phase!.hasClientChat ? 'Talk to the client' : phase!.decision ? 'Answer the question' : 'Continue'}
-              </button>
+            {/* Client message (static, not interactive) */}
+            {phase!.clientChatOpener && (
+              <div className="rounded-lg p-4 mb-4 flex gap-3" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: '#7c3aed', color: '#fff' }}>
+                  {SCENARIO.client.initials}
+                </div>
+                <div>
+                  <div className="text-xs font-semibold mb-1" style={{ color: '#7c3aed' }}>
+                    {SCENARIO.client.name} says:
+                  </div>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--foreground)' }}>
+                    &ldquo;{phase!.clientChatOpener}&rdquo;
+                  </p>
+                </div>
+              </div>
             )}
 
-            {/* Chat interface */}
-            {(phaseStatus === 'chat' || (phaseStatus !== 'event' && phaseChatMessages.length > 0)) && (
-              <div className="mb-4">
-                <div
-                  className="rounded-lg overflow-hidden"
-                  style={{ border: '1px solid var(--border-light)' }}
-                >
-                  <div className="px-4 py-2.5 text-xs font-bold uppercase" style={{ background: 'var(--background)', color: 'var(--muted)', letterSpacing: '0.04em', borderBottom: '1px solid var(--border-light)' }}>
-                    Client conversation
-                  </div>
-                  <div className="p-4 flex flex-col gap-3" style={{ background: 'var(--card-bg)', maxHeight: 360, overflowY: 'auto' }}>
-                    {phaseChatMessages.map((msg, i) => (
-                      <div key={i} className={`flex gap-2.5 ${msg.from === 'associate' ? 'flex-row-reverse' : ''}`}>
-                        {msg.from === 'client' && (
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: '#7c3aed', color: '#fff' }}>
-                            KM
-                          </div>
-                        )}
-                        <div
-                          className="rounded-xl px-3.5 py-2.5 text-sm max-w-[80%]"
-                          style={{
-                            background: msg.from === 'client' ? '#fffbeb' : '#f0fdf4',
-                            border: `1px solid ${msg.from === 'client' ? '#fde68a' : '#bbf7d0'}`,
-                            color: 'var(--foreground)',
-                          }}
-                        >
-                          {msg.from === 'client' && (
-                            <div className="text-xs font-semibold mb-1" style={{ color: '#7c3aed' }}>
-                              {SCENARIO.client.name}
-                              {msg.emotion === 'upset' && <span style={{ color: '#dc2626' }}> (distressed)</span>}
-                              {msg.emotion === 'grateful' && <span style={{ color: '#16a34a' }}> (grateful)</span>}
-                            </div>
-                          )}
-                          {msg.from === 'associate' && (
-                            <div className="text-xs font-semibold mb-1" style={{ color: '#16a34a' }}>You</div>
-                          )}
-                          <p className="leading-relaxed">{msg.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                    {isLoading && (
-                      <div className="flex gap-2.5">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: '#7c3aed', color: '#fff' }}>KM</div>
-                        <div className="rounded-xl px-3.5 py-2.5" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
-                          <span className="text-sm" style={{ color: 'var(--muted)' }}>typing...</span>
-                        </div>
-                      </div>
-                    )}
-                    <div ref={chatEndRef} />
-                  </div>
-                  {phaseStatus === 'chat' && (
-                    <div className="px-4 py-3 flex gap-2" style={{ borderTop: '1px solid var(--border-light)', background: 'var(--background)' }}>
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={e => setChatInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && sendChatMessage()}
-                        placeholder="Type your response to the client..."
-                        className="flex-1 rounded-lg px-3 py-2 text-sm"
-                        style={{ border: '1px solid var(--border-light)', background: 'var(--card-bg)', color: 'var(--foreground)' }}
-                        disabled={isLoading}
-                      />
-                      <button
-                        onClick={sendChatMessage}
-                        disabled={isLoading || !chatInput.trim()}
-                        className="rounded-lg px-4 py-2 text-sm font-medium text-white"
-                        style={{ background: isLoading || !chatInput.trim() ? 'var(--muted)' : 'var(--accent-gold)', cursor: isLoading ? 'wait' : 'pointer' }}
-                      >
-                        Send
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {phaseStatus === 'chat' && phaseChatMessages.filter(m => m.from === 'associate').length >= 1 && (
-                  <button onClick={advanceFromChat} style={{ ...styles.goldButton, marginTop: 12 }}>
-                    {phase!.decision ? 'Done talking — answer the question' : 'Continue to next phase'}
-                  </button>
-                )}
-              </div>
+            {phaseStatus === 'event' && (
+              <button onClick={advanceFromEvent} style={styles.goldButton}>
+                {phase!.decision ? 'Answer the question' : 'Continue'}
+              </button>
             )}
 
             {/* Decision cards */}
