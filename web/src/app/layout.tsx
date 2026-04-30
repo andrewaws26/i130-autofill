@@ -16,9 +16,9 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "I-130 AutoFill | Attum Law",
+  title: "Immigration AutoFill | Attum Law",
   description:
-    "Automated I-130 petition form filling. Upload supporting documents and let AI extract the data, review it, and generate a completed I-130 PDF.",
+    "Automated immigration form filling. Upload an intake form and generate I-130, I-485, I-765, I-130A, I-360, or I-601 PDFs.",
 };
 
 const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;

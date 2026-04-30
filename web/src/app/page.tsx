@@ -68,7 +68,7 @@ export default function UploadPage() {
         // Validate that we got usable data back
         if (!data || !data.petitioner || !data.beneficiary) {
           throw new Error(
-            'Could not extract immigration form data from this document. Please upload an I-130 intake form.'
+            'Could not extract immigration form data from this document. Please upload an immigration intake form.'
           );
         }
 
@@ -88,7 +88,7 @@ export default function UploadPage() {
           err instanceof Error ? err.message : 'An unexpected error occurred.';
         // Never show raw JSON or technical details to the user
         if (message.startsWith('{') || message.startsWith('[') || message.includes('JSON')) {
-          message = 'This document could not be processed. Please upload a handwritten I-130 intake form.';
+          message = 'This document could not be processed. Please upload an immigration intake form.';
         }
         // Truncate overly long error messages
         if (message.length > 200) {
@@ -394,10 +394,10 @@ export default function UploadPage() {
             color: 'var(--heading)',
           }}
         >
-          I-130 AutoFill
+          Immigration AutoFill
         </h1>
         <p className="text-sm" style={{ color: 'var(--muted)' }}>
-          Upload or photograph a handwritten intake form
+          Upload an intake form to auto-fill I-130, I-485, I-765, I-130A, I-360, or I-601
         </p>
       </div>
 
