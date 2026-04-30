@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     setText(form, 'Pt1Line7_CountryOfBirth[0]', b?.country_of_birth || '');
 
     // Country of citizenship
-    setText(form, 'Pt1Line8_CountryofCitizenshipNationality[0]', b?.country_of_birth || '');
+    setText(form, 'Pt1Line8_CountryofCitizenshipNationality[0]', b?.country_of_citizenship || b?.country_of_birth || '');
 
     // A-Number (if known)
     if (b?.a_number) {
@@ -128,6 +128,7 @@ export async function POST(request: Request) {
     setText(form, 'Pt1Line18_StreetNumberName[0]', bAddr.street || '');
     setText(form, 'Pt1Line18US_AptSteFlrNumber[0]', bAddr.unit_number || '');
     setText(form, 'Pt1Line18_CityOrTown[0]', bAddr.city || '');
+    setText(form, 'Pt1Line18_State[0]', bAddr.state || '');
     setText(form, 'Pt1Line18_ZipCode[0]', bAddr.zip || '');
 
     // Unit type checkboxes

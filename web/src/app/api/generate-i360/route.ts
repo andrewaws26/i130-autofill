@@ -75,10 +75,11 @@ export async function POST(request: Request) {
     setText(form, 'Pt1Line3_SSN[0]', removeDashes(p?.ssn || ''));
 
     // Petitioner address
-    const pAddr = p?.current_address || {};
+    const pAddr = p?.mailing_address || {};
     setText(form, 'Pt1Line6_StreetNumberName[0]', pAddr.street || '');
     setText(form, 'Pt1Line6_AptSteFlrNumber[0]', pAddr.unit_number || '');
     setText(form, 'Pt1Line6_CityOrTown[0]', pAddr.city || '');
+    setText(form, 'Pt1Line6_State[0]', pAddr.state || '');
     setText(form, 'Pt1Line6_ZipCode[0]', pAddr.zip || '');
     setText(form, 'Pt1Line6_Country[0]', pAddr.country || '');
 
@@ -104,6 +105,7 @@ export async function POST(request: Request) {
     setText(form, 'Pt3Line2_StreetNumberName[0]', bAddr.street || '');
     setText(form, 'Pt3Line2_AptSteFlrNumber[0]', bAddr.unit_number || '');
     setText(form, 'Pt3Line2_CityOrTown[0]', bAddr.city || '');
+    setText(form, 'Pt3Line2_State[0]', bAddr.state || '');
     setText(form, 'Pt3Line2_ZipCode[0]', bAddr.zip || '');
     setText(form, 'Pt3Line2_Country[0]', bAddr.country || '');
 
@@ -155,6 +157,9 @@ export async function POST(request: Request) {
 
     // Passport/travel doc expiration date
     setText(form, 'Pt3Line13_ExpDate[0]', b?.passport_expiration || '');
+
+    // Nationality / current USCIS status
+    setText(form, 'Pt3Line14_CurrentUSCISStatus[0]', b?.country_of_citizenship || b?.country_of_birth || '');
 
     // ===== PART 6: Information About Your Parents (= beneficiary's parents) =====
 

@@ -78,6 +78,7 @@ export async function POST(request: Request) {
     setText(form, 'Line4b_StreetNumberName[0]', bAddr.street || '');
     setText(form, 'Pt2Line5_AptSteFlrNumber[0]', bAddr.unit_number || '');
     setText(form, 'Pt2Line5_CityOrTown[0]', bAddr.city || '');
+    setText(form, 'Pt2Line5_State[0]', bAddr.state || '');
     setText(form, 'Pt2Line5_ZipCode[0]', bAddr.zip || '');
 
     // ===== A-Number =====
@@ -85,11 +86,15 @@ export async function POST(request: Request) {
       setText(form, 'Line7_AlienNumber[0]', b.a_number);
     }
 
+    // ===== Eligibility Category =====
+    setText(form, 'section_1[0]', b?.eligibility_category || '');
+
     // ===== SSN =====
     setText(form, 'Line12b_SSN[0]', removeDashes(b?.ssn || ''));
 
     // ===== Country / Place of Birth =====
     setText(form, 'Line17a_CountryOfBirth[0]', b?.country_of_birth || '');
+    setText(form, 'Line16_CountryOfCitizenship[0]', b?.country_of_citizenship || b?.country_of_birth || '');
     setText(form, 'Line18a_CityTownOfBirth[0]', b?.city_of_birth || '');
 
     // ===== Date of Birth =====

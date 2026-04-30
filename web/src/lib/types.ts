@@ -84,11 +84,21 @@ export interface Beneficiary {
   given_name: string;
   middle_name: string;
   ssn: string;
+  a_number: string;
   other_names: string;
   city_of_birth: string;
   country_of_birth: string;
+  country_of_citizenship: string;
   date_of_birth: string;
   sex: string;
+  ethnicity: string;
+  race: string;
+  height_feet: string;
+  height_inches: string;
+  weight_lbs: string;
+  eye_color: string;
+  hair_color: string;
+  eligibility_category: string;
   current_address: Address;
   phone: string;
   mobile_phone: string;
@@ -240,11 +250,21 @@ export function createEmptyIntakeData(): IntakeData {
       given_name: "",
       middle_name: "",
       ssn: "",
+      a_number: "",
       other_names: "",
       city_of_birth: "",
       country_of_birth: "",
+      country_of_citizenship: "",
       date_of_birth: "",
       sex: "",
+      ethnicity: "",
+      race: "",
+      height_feet: "",
+      height_inches: "",
+      weight_lbs: "",
+      eye_color: "",
+      hair_color: "",
+      eligibility_category: "",
       current_address: createEmptyAddress(),
       phone: "",
       mobile_phone: "",

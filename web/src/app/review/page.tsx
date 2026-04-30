@@ -740,6 +740,7 @@ function ReviewPageInner() {
     relationship: ['i130', 'i360'],
     petitioner: ['i130', 'i485', 'i360', 'i601'],
     biographic: ['i130', 'i601'],
+    beneficiary_biographic: ['i485', 'i601'],
     beneficiary_basic: ['i130', 'i485', 'i765', 'i130a', 'i360', 'i601'],
     beneficiary_marital: ['i130', 'i485', 'i360'],
     beneficiary_entry: ['i130', 'i485', 'i765', 'i601'],
@@ -1153,12 +1154,17 @@ function ReviewPageInner() {
         </Row>
         <Row>
           <Field label="SSN" value={data.beneficiary.ssn} onChange={(v) => updateBeneficiary('ssn', v)} format="ssn" masked={beneficiarySSNMasked} onToggleMask={() => setBeneficiarySSNMasked((p) => !p)} error={validateSSN(data.beneficiary.ssn)} confidence={conf('beneficiary.ssn')} />
+          <Field label="A-Number" value={data.beneficiary.a_number} onChange={(v) => updateBeneficiary('a_number', v)} confidence={conf('beneficiary.a_number')} />
           <Field label="Date of Birth" value={data.beneficiary.date_of_birth} onChange={(v) => updateBeneficiary('date_of_birth', v)} format="date" error={validateDate(data.beneficiary.date_of_birth)} confidence={conf('beneficiary.date_of_birth')} />
-          <SelectField label="Sex" value={data.beneficiary.sex} onChange={(v) => updateBeneficiary('sex', v)} options={SEX_OPTIONS} confidence={conf('beneficiary.sex')} />
         </Row>
-        <Row2>
+        <Row>
+          <SelectField label="Sex" value={data.beneficiary.sex} onChange={(v) => updateBeneficiary('sex', v)} options={SEX_OPTIONS} confidence={conf('beneficiary.sex')} />
           <Field label="City of Birth" value={data.beneficiary.city_of_birth} onChange={(v) => updateBeneficiary('city_of_birth', v)} confidence={conf('beneficiary.city_of_birth')} />
           <Field label="Country of Birth" value={data.beneficiary.country_of_birth} onChange={(v) => updateBeneficiary('country_of_birth', v)} confidence={conf('beneficiary.country_of_birth')} />
+        </Row>
+        <Row2>
+          <Field label="Country of Citizenship" value={data.beneficiary.country_of_citizenship} onChange={(v) => updateBeneficiary('country_of_citizenship', v)} confidence={conf('beneficiary.country_of_citizenship')} />
+          <Field label="Other Names Used" value={data.beneficiary.other_names} onChange={(v) => updateBeneficiary('other_names', v)} confidence={conf('beneficiary.other_names')} />
         </Row2>
 
         <SubHeading text="Current Address" />
@@ -1176,6 +1182,28 @@ function ReviewPageInner() {
           <Field label="Country" value={data.beneficiary.current_address.country} onChange={(v) => updateBeneficiaryAddress('country', v)} confidence={conf('beneficiary.current_address.country')} />
           <Field label="Phone" value={data.beneficiary.phone} onChange={(v) => updateBeneficiary('phone', v)} format="phone" confidence={conf('beneficiary.phone')} />
         </Row>
+        <Row>
+          <Field label="Mobile Phone" value={data.beneficiary.mobile_phone} onChange={(v) => updateBeneficiary('mobile_phone', v)} format="phone" confidence={conf('beneficiary.mobile_phone')} />
+          <Field label="Email" value={data.beneficiary.email} onChange={(v) => updateBeneficiary('email', v)} confidence={conf('beneficiary.email')} />
+          {showSection('beneficiary_entry') && <Field label="I-765 Eligibility Category" value={data.beneficiary.eligibility_category} onChange={(v) => updateBeneficiary('eligibility_category', v)} confidence={conf('beneficiary.eligibility_category')} />}
+        </Row>
+
+        {showSection('beneficiary_biographic') && <>
+        <SubHeading text="Beneficiary Biographic Information" />
+        <Row2>
+          <SelectField label="Ethnicity" value={data.beneficiary.ethnicity} onChange={(v) => updateBeneficiary('ethnicity', v)} options={ETHNICITY_OPTIONS} confidence={conf('beneficiary.ethnicity')} />
+          <SelectField label="Race" value={data.beneficiary.race} onChange={(v) => updateBeneficiary('race', v)} options={RACE_OPTIONS} confidence={conf('beneficiary.race')} />
+        </Row2>
+        <Row>
+          <SelectField label="Height (Feet)" value={data.beneficiary.height_feet} onChange={(v) => updateBeneficiary('height_feet', v)} options={HEIGHT_FEET} confidence={conf('beneficiary.height_feet')} />
+          <SelectField label="Height (Inches)" value={data.beneficiary.height_inches} onChange={(v) => updateBeneficiary('height_inches', v)} options={HEIGHT_INCHES} confidence={conf('beneficiary.height_inches')} />
+          <Field label="Weight (lbs)" value={data.beneficiary.weight_lbs} onChange={(v) => updateBeneficiary('weight_lbs', v)} confidence={conf('beneficiary.weight_lbs')} />
+        </Row>
+        <Row2>
+          <SelectField label="Eye Color" value={data.beneficiary.eye_color} onChange={(v) => updateBeneficiary('eye_color', v)} options={EYE_COLORS} confidence={conf('beneficiary.eye_color')} />
+          <SelectField label="Hair Color" value={data.beneficiary.hair_color} onChange={(v) => updateBeneficiary('hair_color', v)} options={HAIR_COLORS} confidence={conf('beneficiary.hair_color')} />
+        </Row2>
+        </>}
 
         {showSection('beneficiary_marital') && <>
         <SubHeading text="Marital Information" />

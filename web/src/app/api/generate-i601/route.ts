@@ -94,7 +94,7 @@ export async function POST(request: Request) {
     setText(form, 'p1Line13CountryOfBirth[0]', b?.country_of_birth || '');
 
     // Country of citizenship/nationality
-    setText(form, 'p1Line14CountryOfCitzOrNat[0]', b?.country_of_birth || '');
+    setText(form, 'p1Line14CountryOfCitzOrNat[0]', b?.country_of_citizenship || b?.country_of_birth || '');
 
     // ===== Applicant US mailing address =====
     const bAddr = b?.current_address || {};
