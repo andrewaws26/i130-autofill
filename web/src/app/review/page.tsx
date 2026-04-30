@@ -735,6 +735,21 @@ function ReviewPageInner() {
     i601: { route: '/api/generate-i601', label: 'I-601' },
   };
 
+  /* Which forms need which sections */
+  const SECTION_FORMS: Record<string, string[]> = {
+    relationship: ['i130', 'i360'],
+    petitioner: ['i130', 'i360', 'i601'],
+    biographic: ['i130', 'i601'],
+    beneficiary_basic: ['i130', 'i485', 'i765', 'i130a', 'i360', 'i601'],
+    beneficiary_marital: ['i130', 'i485', 'i360'],
+    beneficiary_entry: ['i130', 'i485', 'i765'],
+    beneficiary_passport: ['i485', 'i765'],
+    beneficiary_parents: ['i130a', 'i485', 'i360'],
+    beneficiary_employment: ['i130', 'i485', 'i130a'],
+    beneficiary_proceedings: ['i130', 'i485'],
+  };
+  const showSection = (key: string) => SECTION_FORMS[key]?.some(f => selectedForms.has(f)) ?? true;
+
   /* Generate PDFs */
   const generate = useCallback(async () => {
     setGenerating(true);
@@ -928,6 +943,28 @@ function ReviewPageInner() {
         </div>
       </div>
 
+      {/* Form selection - top of review */}
+      <div className="card p-4 mb-6" style={{ borderLeft: '4px solid var(--accent-gold)' }}>
+        <p className="text-xs font-semibold mb-2" style={{ color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Forms to Generate</p>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {Object.entries(FORM_ROUTES).map(([id, { label }]) => (
+            <label key={id} className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: 'var(--heading)' }}>
+              <input
+                type="checkbox"
+                checked={selectedForms.has(id)}
+                onChange={() => toggleForm(id)}
+                className="accent-[var(--accent-gold)]"
+                style={{ width: 16, height: 16 }}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+        <p className="text-xs mt-2" style={{ color: 'var(--muted-light)' }}>
+          Only fields relevant to selected forms are shown below.
+        </p>
+      </div>
+
       {/* Success banner - compact notice at top when PDF is ready */}
       {Object.keys(pdfBlobs).length > 0 && (
         <div
@@ -946,7 +983,7 @@ function ReviewPageInner() {
       {/* ============================================================
           Section 1: Relationship
           ============================================================ */}
-      <Section title="1. Relationship">
+      {showSection('relationship') && <Section title="1. Relationship">
         <div className="flex flex-wrap gap-4">
           {RELATIONSHIP_OPTIONS.map((opt) => (
             <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
@@ -962,12 +999,12 @@ function ReviewPageInner() {
             </label>
           ))}
         </div>
-      </Section>
+      </Section>}
 
       {/* ============================================================
           Section 2: Petitioner Information
           ============================================================ */}
-      <Section title="2. Petitioner Information">
+      {showSection('petitioner') && <Section title="2. Petitioner Information">
         <SubHeading text="Information About You (Petitioner)" />
         <Row>
           <Field label="Family Name" value={data.petitioner.family_name} onChange={(v) => updatePetitioner('family_name', v)} confidence={conf('petitioner.family_name')} />
@@ -1083,12 +1120,12 @@ function ReviewPageInner() {
           <Field label="Occupation" value={data.petitioner.occupation} onChange={(v) => updatePetitioner('occupation', v)} confidence={conf('petitioner.occupation')} />
           <Field label="Date From" value={data.petitioner.employment_date_from} onChange={(v) => updatePetitioner('employment_date_from', v)} format="date" error={validateDate(data.petitioner.employment_date_from)} confidence={conf('petitioner.employment_date_from')} />
         </Row>
-      </Section>
+      </Section>}
 
       {/* ============================================================
           Section 3: Biographic Information
           ============================================================ */}
-      <Section title="3. Biographic Information">
+      {showSection('biographic') && <Section title="3. Biographic Information">
         <Row2>
           <SelectField label="Ethnicity" value={data.petitioner.ethnicity} onChange={(v) => updatePetitioner('ethnicity', v)} options={ETHNICITY_OPTIONS} confidence={conf('petitioner.ethnicity')} />
           <SelectField label="Race" value={data.petitioner.race} onChange={(v) => updatePetitioner('race', v)} options={RACE_OPTIONS} confidence={conf('petitioner.race')} />
@@ -1102,12 +1139,12 @@ function ReviewPageInner() {
           <SelectField label="Eye Color" value={data.petitioner.eye_color} onChange={(v) => updatePetitioner('eye_color', v)} options={EYE_COLORS} confidence={conf('petitioner.eye_color')} />
           <SelectField label="Hair Color" value={data.petitioner.hair_color} onChange={(v) => updatePetitioner('hair_color', v)} options={HAIR_COLORS} confidence={conf('petitioner.hair_color')} />
         </Row2>
-      </Section>
+      </Section>}
 
       {/* ============================================================
           Section 4: Beneficiary Information
           ============================================================ */}
-      <Section title="4. Beneficiary Information">
+      {showSection('beneficiary_basic') && <Section title={`${showSection('petitioner') ? '4' : '2'}. Beneficiary Information`}>
         <SubHeading text="Information About Beneficiary" />
         <Row>
           <Field label="Family Name" value={data.beneficiary.family_name} onChange={(v) => updateBeneficiary('family_name', v)} confidence={conf('beneficiary.family_name')} />
@@ -1140,6 +1177,7 @@ function ReviewPageInner() {
           <Field label="Phone" value={data.beneficiary.phone} onChange={(v) => updateBeneficiary('phone', v)} format="phone" confidence={conf('beneficiary.phone')} />
         </Row>
 
+        {showSection('beneficiary_marital') && <>
         <SubHeading text="Marital Information" />
         <Row>
           <Field label="Times Married" value={data.beneficiary.times_married} onChange={(v) => updateBeneficiary('times_married', v)} confidence={conf('beneficiary.times_married')} />
@@ -1151,14 +1189,54 @@ function ReviewPageInner() {
           <Field label="Marriage State" value={data.beneficiary.marriage_state} onChange={(v) => updateBeneficiary('marriage_state', v)} error={validateState(data.beneficiary.marriage_state)} confidence={conf('beneficiary.marriage_state')} />
           <Field label="Marriage Country" value={data.beneficiary.marriage_country} onChange={(v) => updateBeneficiary('marriage_country', v)} confidence={conf('beneficiary.marriage_country')} />
         </Row>
+        </>}
 
+        {showSection('beneficiary_entry') && <>
         <SubHeading text="Entry Information" />
         <Row>
           <SelectField label="Ever in U.S." value={data.beneficiary.ever_in_us} onChange={(v) => updateBeneficiary('ever_in_us', v)} options={YES_NO} confidence={conf('beneficiary.ever_in_us')} />
           <Field label="Class of Admission" value={data.beneficiary.class_of_admission} onChange={(v) => updateBeneficiary('class_of_admission', v)} confidence={conf('beneficiary.class_of_admission')} />
           <Field label="Date of Arrival" value={data.beneficiary.date_of_arrival} onChange={(v) => updateBeneficiary('date_of_arrival', v)} format="date" error={validateDate(data.beneficiary.date_of_arrival)} confidence={conf('beneficiary.date_of_arrival')} />
         </Row>
+        </>}
 
+        {showSection('beneficiary_passport') && <>
+        <SubHeading text="Passport / Travel Document" />
+        <Row>
+          <Field label="Passport Number" value={data.beneficiary.passport_number} onChange={(v) => updateBeneficiary('passport_number', v)} confidence={conf('beneficiary.passport_number')} />
+          <Field label="Country of Issuance" value={data.beneficiary.passport_country} onChange={(v) => updateBeneficiary('passport_country', v)} confidence={conf('beneficiary.passport_country')} />
+          <Field label="Expiration Date" value={data.beneficiary.passport_expiration} onChange={(v) => updateBeneficiary('passport_expiration', v)} format="date" error={validateDate(data.beneficiary.passport_expiration)} confidence={conf('beneficiary.passport_expiration')} />
+        </Row>
+        <Row2>
+          <Field label="Travel Document Number" value={data.beneficiary.travel_doc_number} onChange={(v) => updateBeneficiary('travel_doc_number', v)} confidence={conf('beneficiary.travel_doc_number')} />
+          <Field label="I-94 Number" value={data.beneficiary.i94_number} onChange={(v) => updateBeneficiary('i94_number', v)} confidence={conf('beneficiary.i94_number')} />
+        </Row2>
+        </>}
+
+        {showSection('beneficiary_parents') && <>
+        <SubHeading text="Beneficiary Parent 1" />
+        <Row>
+          <Field label="Family Name" value={data.beneficiary.parent1_family_name} onChange={(v) => updateBeneficiary('parent1_family_name', v)} confidence={conf('beneficiary.parent1_family_name')} />
+          <Field label="Given Name" value={data.beneficiary.parent1_given_name} onChange={(v) => updateBeneficiary('parent1_given_name', v)} confidence={conf('beneficiary.parent1_given_name')} />
+          <Field label="Date of Birth" value={data.beneficiary.parent1_dob} onChange={(v) => updateBeneficiary('parent1_dob', v)} format="date" error={validateDate(data.beneficiary.parent1_dob)} confidence={conf('beneficiary.parent1_dob')} />
+        </Row>
+        <Row2>
+          <Field label="City of Birth" value={data.beneficiary.parent1_city_of_birth} onChange={(v) => updateBeneficiary('parent1_city_of_birth', v)} confidence={conf('beneficiary.parent1_city_of_birth')} />
+          <Field label="Country of Birth" value={data.beneficiary.parent1_country_of_birth} onChange={(v) => updateBeneficiary('parent1_country_of_birth', v)} confidence={conf('beneficiary.parent1_country_of_birth')} />
+        </Row2>
+        <SubHeading text="Beneficiary Parent 2" />
+        <Row>
+          <Field label="Family Name" value={data.beneficiary.parent2_family_name} onChange={(v) => updateBeneficiary('parent2_family_name', v)} confidence={conf('beneficiary.parent2_family_name')} />
+          <Field label="Given Name" value={data.beneficiary.parent2_given_name} onChange={(v) => updateBeneficiary('parent2_given_name', v)} confidence={conf('beneficiary.parent2_given_name')} />
+          <Field label="Date of Birth" value={data.beneficiary.parent2_dob} onChange={(v) => updateBeneficiary('parent2_dob', v)} format="date" error={validateDate(data.beneficiary.parent2_dob)} confidence={conf('beneficiary.parent2_dob')} />
+        </Row>
+        <Row2>
+          <Field label="City of Birth" value={data.beneficiary.parent2_city_of_birth} onChange={(v) => updateBeneficiary('parent2_city_of_birth', v)} confidence={conf('beneficiary.parent2_city_of_birth')} />
+          <Field label="Country of Birth" value={data.beneficiary.parent2_country_of_birth} onChange={(v) => updateBeneficiary('parent2_country_of_birth', v)} confidence={conf('beneficiary.parent2_country_of_birth')} />
+        </Row2>
+        </>}
+
+        {showSection('beneficiary_employment') && <>
         <SubHeading text="Employment" />
         <Row2>
           <Field label="Employer Name" value={data.beneficiary.employer_name} onChange={(v) => updateBeneficiary('employer_name', v)} confidence={conf('beneficiary.employer_name')} />
@@ -1173,7 +1251,9 @@ function ReviewPageInner() {
           <Field label="Country" value={data.beneficiary.employer_country} onChange={(v) => updateBeneficiary('employer_country', v)} confidence={conf('beneficiary.employer_country')} />
           <Field label="Date Employment Began" value={data.beneficiary.employment_date_from} onChange={(v) => updateBeneficiary('employment_date_from', v)} format="date" error={validateDate(data.beneficiary.employment_date_from)} confidence={conf('beneficiary.employment_date_from')} />
         </Row2>
+        </>}
 
+        {showSection('beneficiary_proceedings') && <>
         <SubHeading text="Immigration Proceedings" />
         <Row>
           <SelectField label="In Proceedings" value={data.beneficiary.in_immigration_proceedings} onChange={(v) => updateBeneficiary('in_immigration_proceedings', v)} options={YES_NO} confidence={conf('beneficiary.in_immigration_proceedings')} />
@@ -1184,7 +1264,8 @@ function ReviewPageInner() {
           <Field label="State" value={data.beneficiary.proceedings_state} onChange={(v) => updateBeneficiary('proceedings_state', v)} error={validateState(data.beneficiary.proceedings_state)} confidence={conf('beneficiary.proceedings_state')} />
           <Field label="Date" value={data.beneficiary.proceedings_date} onChange={(v) => updateBeneficiary('proceedings_date', v)} format="date" error={validateDate(data.beneficiary.proceedings_date)} confidence={conf('beneficiary.proceedings_date')} />
         </Row2>
-      </Section>
+        </>}
+      </Section>}
 
       {/* ============================================================
           Generate / Download
@@ -1230,21 +1311,6 @@ function ReviewPageInner() {
           </div>
         ) : (
           <>
-            {/* Form selection */}
-            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mb-4">
-              {Object.entries(FORM_ROUTES).map(([id, { label }]) => (
-                <label key={id} className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: 'var(--heading)' }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedForms.has(id)}
-                    onChange={() => toggleForm(id)}
-                    className="accent-[var(--accent-gold)]"
-                    style={{ width: 16, height: 16 }}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
             <div className="flex items-center justify-center gap-4">
               <button
                 className="btn btn-primary btn-generate text-lg px-8 py-3"
