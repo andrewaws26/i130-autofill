@@ -71,9 +71,10 @@ export async function POST(request: Request) {
     setText(form, 'p1Line3bGivenName[0]', b?.given_name || '');
     setText(form, 'p1Line3cMiddleName[0]', b?.middle_name || '');
 
-    // A-Number
-    if (b?.a_number) {
-      setText(form, 'p1Line1ANum[0]', b.a_number);
+    // A-Number — strip "A-" prefix
+    const aNum = (b?.a_number || '').replace(/^A-?/i, '').trim();
+    if (aNum) {
+      setText(form, 'p1Line1ANum[0]', aNum);
     }
 
     // SSN (remove dashes)

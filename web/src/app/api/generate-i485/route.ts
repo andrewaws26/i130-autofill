@@ -93,9 +93,10 @@ export async function POST(request: Request) {
     // Country of citizenship
     setText(form, 'Pt1Line8_CountryofCitizenshipNationality[0]', b?.country_of_citizenship || b?.country_of_birth || '');
 
-    // A-Number (if known)
-    if (b?.a_number) {
-      setText(form, 'Pt1Line4_AlienNumber[0]', b.a_number);
+    // A-Number (if known) — strip "A-" or "A" prefix, field is 9 digits only
+    const aNum = (b?.a_number || '').replace(/^A-?/i, '').trim();
+    if (aNum) {
+      setText(form, 'Pt1Line4_AlienNumber[0]', aNum);
     }
 
     // I-94 number

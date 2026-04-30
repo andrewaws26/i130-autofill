@@ -66,9 +66,10 @@ export async function POST(request: Request) {
     setText(form, 'Pt1Line3b_GivenName[0]', b?.given_name || '');
     setText(form, 'Pt1Line3c_MiddleName[0]', b?.middle_name || '');
 
-    // A-Number
-    if (b?.a_number) {
-      setText(form, 'Pt1Line1_AlienNumber[0]', b.a_number);
+    // A-Number — strip "A-" prefix
+    const aNum = (b?.a_number || '').replace(/^A-?/i, '').trim();
+    if (aNum) {
+      setText(form, 'Pt1Line1_AlienNumber[0]', aNum);
     }
 
     // ===== Current Physical Address =====
