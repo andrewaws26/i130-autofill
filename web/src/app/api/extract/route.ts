@@ -4,9 +4,9 @@ import { logApiCall } from '@/lib/api-logger';
 
 export const maxDuration = 120;
 
-const EXTRACTION_PROMPT = `You are an expert immigration paralegal reading a scanned handwritten intake form for a USCIS I-130 (Petition for Alien Relative).
+const EXTRACTION_PROMPT = `You are an expert immigration paralegal reading a scanned handwritten intake form for immigration filing purposes (I-130 Petition for Alien Relative, I-485 Adjustment of Status, or combined intake forms).
 
-Extract ALL information from EVERY page (including the last pages) into the JSON structure below.
+Extract ALL information from EVERY page (including the last pages) into the JSON structure below. The intake form may be labeled for any immigration form type (I-130, I-485, combined, or unlabeled) — extract all available petitioner/applicant and beneficiary information regardless of which specific form the intake is for, since this data is used across multiple filings.
 
 CRITICAL READING INSTRUCTIONS:
 - Read EVERY page carefully - SSNs and important details may appear on ANY page including the last
@@ -23,6 +23,12 @@ CRITICAL READING INSTRUCTIONS:
 - Common handwriting misreads to watch for: "Tracco" not "Tyco", "Leitchfield" not "Jethorhed", look for street name patterns
 - ALL dates MUST be in MM/DD/YYYY format. If the handwriting shows "October 9th" without a year, use the most likely year based on context (e.g., if the form was recently filled, use the current or recent year). If a field has multiple dates like "October 9th, September 9th", pick the FIRST date only.
 - proceedings_type MUST be one of: "Removal", "Exclusion", "Rescission", or "Other". If the handwriting is unclear, default to "Removal".
+
+MAPPING FOR DIFFERENT FORM TYPES:
+- For I-130 intake forms: "petitioner" = the US citizen/LPR sponsor, "beneficiary" = the foreign national relative
+- For I-485 intake forms: the I-485 applicant maps to "beneficiary" (they are adjusting status), and their US citizen/LPR spouse or relative maps to "petitioner"
+- For combined/general intake forms: identify who is the US citizen/LPR (petitioner) and who is the foreign national (beneficiary) from context clues like citizenship status, country of birth, SSN presence, etc.
+- Always fill in as many fields as possible from the available data, even if the form doesn't have explicit sections matching every field below.
 
 Return ONLY valid JSON, no markdown, no explanation.
 
@@ -319,8 +325,8 @@ export async function POST(request: Request) {
         lower.includes('mailing') || lower.includes('not the requested');
 
       const userMessage = isWrongDoc
-        ? 'This document is not an immigration intake form. Please upload the correct I-130 intake form (handwritten client questionnaire).'
-        : 'Could not read this document. Please make sure the image is clear and shows a handwritten I-130 intake form.';
+        ? 'This document is not an immigration intake form. Please upload a handwritten client questionnaire (I-130, I-485, or combined intake form).'
+        : 'Could not read this document. Please make sure the image is clear and shows a handwritten immigration intake form.';
 
       console.error('Extraction failed - not valid JSON. Claude said:', responseText.slice(0, 300));
       return Response.json({ error: userMessage }, { status: 422 });
@@ -370,12 +376,15 @@ export async function POST(request: Request) {
       console.warn('Extraction validation issues:', validationIssues);
     }
 
-    // Validate that the extraction found actual intake data
+    // Validate that the extraction found actual intake data (check both petitioner and beneficiary
+    // since I-485 intake forms may populate beneficiary fields primarily)
     const pet = data.petitioner || {};
-    const hasUsableData = pet.family_name || pet.given_name || pet.date_of_birth || pet.ssn;
-    if (!hasUsableData) {
+    const ben = data.beneficiary || {};
+    const hasPetitionerData = pet.family_name || pet.given_name || pet.date_of_birth || pet.ssn;
+    const hasBeneficiaryData = ben.family_name || ben.given_name || ben.date_of_birth || ben.ssn;
+    if (!hasPetitionerData && !hasBeneficiaryData) {
       return Response.json(
-        { error: 'This document does not appear to be an I-130 intake form. No petitioner information could be extracted. Please upload the correct form.' },
+        { error: 'No petitioner or beneficiary information could be extracted from this document. Please upload a handwritten immigration intake form (I-130, I-485, or combined).' },
         { status: 422 }
       );
     }
