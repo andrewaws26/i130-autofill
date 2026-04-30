@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import mammoth from 'mammoth';
 import { postProcess } from '@/lib/postprocess';
 import { logApiCall } from '@/lib/api-logger';
 
@@ -232,15 +233,20 @@ export async function POST(request: Request) {
     }
 
     const SUPPORTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+    const DOCX_TYPES = new Set([
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ]);
 
     // Validate file types before processing
     for (const file of files) {
       const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
       const isImage = SUPPORTED_IMAGE_TYPES.has(file.type);
-      if (!isPdf && !isImage) {
+      const isDocx = DOCX_TYPES.has(file.type) || file.name.endsWith('.docx') || file.name.endsWith('.doc');
+      if (!isPdf && !isImage && !isDocx) {
         const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown';
         return Response.json(
-          { error: `Unsupported file type: .${ext}. Please upload a PDF or image (JPEG, PNG, GIF, WEBP) of the intake form.` },
+          { error: `Unsupported file type: .${ext}. Please upload a PDF, Word document (.docx), or image (JPEG, PNG, GIF, WEBP) of the intake form.` },
           { status: 400 }
         );
       }
@@ -253,11 +259,24 @@ export async function POST(request: Request) {
 
     for (const file of files) {
       const bytes = await file.arrayBuffer();
-      const base64 = Buffer.from(bytes).toString('base64');
-
       const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+      const isDocx = DOCX_TYPES.has(file.type) || file.name.endsWith('.docx') || file.name.endsWith('.doc');
 
-      if (isPdf) {
+      if (isDocx) {
+        // Extract text from Word document
+        const result = await mammoth.extractRawText({ buffer: Buffer.from(bytes) });
+        if (!result.value.trim()) {
+          return Response.json(
+            { error: 'The Word document appears to be empty. Please upload a document with intake form data.' },
+            { status: 400 }
+          );
+        }
+        content.push({
+          type: 'text',
+          text: `[Content extracted from uploaded Word document "${file.name}"]\n\n${result.value}`,
+        });
+      } else if (isPdf) {
+        const base64 = Buffer.from(bytes).toString('base64');
         content.push({
           type: 'document',
           source: {
@@ -267,6 +286,7 @@ export async function POST(request: Request) {
           },
         });
       } else {
+        const base64 = Buffer.from(bytes).toString('base64');
         content.push({
           type: 'image',
           source: {
