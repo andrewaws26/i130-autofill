@@ -5,9 +5,13 @@ import { logApiCall } from '@/lib/api-logger';
 
 export const maxDuration = 120;
 
-const EXTRACTION_PROMPT = `You are an expert immigration paralegal reading a scanned handwritten intake form for immigration filing purposes (I-130 Petition for Alien Relative, I-485 Adjustment of Status, or combined intake forms).
+const EXTRACTION_PROMPT = `You are an expert immigration paralegal extracting data from immigration documents. The document may be:
+- A handwritten intake questionnaire
+- A filled/typed USCIS form (I-130, I-485, I-765, I-130A, I-360, I-601, etc.)
+- A Word document with client information
+- Any combination of the above
 
-Extract ALL information from EVERY page (including the last pages) into the JSON structure below. The intake form may be labeled for any immigration form type (I-130, I-485, combined, or unlabeled) — extract all available petitioner/applicant and beneficiary information regardless of which specific form the intake is for, since this data is used across multiple filings.
+Extract ALL information from EVERY page into the JSON structure below. For filled USCIS forms, read the form field values directly. For handwritten forms, interpret the handwriting. Always extract as much data as possible regardless of document type.
 
 CRITICAL READING INSTRUCTIONS:
 - Read EVERY page carefully - SSNs and important details may appear on ANY page including the last
@@ -25,11 +29,15 @@ CRITICAL READING INSTRUCTIONS:
 - ALL dates MUST be in MM/DD/YYYY format. If the handwriting shows "October 9th" without a year, use the most likely year based on context (e.g., if the form was recently filled, use the current or recent year). If a field has multiple dates like "October 9th, September 9th", pick the FIRST date only.
 - proceedings_type MUST be one of: "Removal", "Exclusion", "Rescission", or "Other". If the handwriting is unclear, default to "Removal".
 
-MAPPING FOR DIFFERENT FORM TYPES:
-- For I-130 intake forms: "petitioner" = the US citizen/LPR sponsor, "beneficiary" = the foreign national relative
-- For I-485 intake forms: the I-485 applicant maps to "beneficiary" (they are adjusting status), and their US citizen/LPR spouse or relative maps to "petitioner"
+MAPPING FOR DIFFERENT FORM/DOCUMENT TYPES:
+- For I-130 forms or intake: "petitioner" = the US citizen/LPR sponsor, "beneficiary" = the foreign national relative
+- For I-485 forms or intake: the I-485 applicant (Part 1 "Information About You") maps to "beneficiary" (they are adjusting status), and their US citizen/LPR spouse or relative maps to "petitioner". Read all filled fields including name, DOB, sex, place of birth, citizenship, immigration history, addresses, etc.
+- For I-765 forms: the applicant maps to "beneficiary"
+- For I-130A forms: the information is about the beneficiary spouse
+- For I-601 forms: the applicant maps to "beneficiary", the qualifying relative maps to "petitioner"
 - For combined/general intake forms: identify who is the US citizen/LPR (petitioner) and who is the foreign national (beneficiary) from context clues like citizenship status, country of birth, SSN presence, etc.
 - Always fill in as many fields as possible from the available data, even if the form doesn't have explicit sections matching every field below.
+- For filled USCIS forms: extract data from the form fields even if some are empty. Do NOT refuse or say "this is not an intake form" — any immigration document with extractable data is valid input.
 
 Return ONLY valid JSON, no markdown, no explanation.
 
@@ -358,8 +366,8 @@ export async function POST(request: Request) {
         lower.includes('mailing') || lower.includes('not the requested');
 
       const userMessage = isWrongDoc
-        ? 'This document is not an immigration intake form. Please upload a handwritten client questionnaire (I-130, I-485, or combined intake form).'
-        : 'Could not read this document. Please make sure the image is clear and shows a handwritten immigration intake form.';
+        ? 'Could not extract immigration data from this document. Please upload an intake form or filled USCIS form (I-130, I-485, I-765, etc.).'
+        : 'Could not read this document. Please make sure the image is clear and the document contains immigration form data.';
 
       console.error('Extraction failed - not valid JSON. Claude said:', responseText.slice(0, 300));
       return Response.json({ error: userMessage }, { status: 422 });
