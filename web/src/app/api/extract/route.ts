@@ -427,18 +427,9 @@ export async function POST(request: Request) {
       console.warn('Extraction validation issues:', validationIssues);
     }
 
-    // Validate that the extraction found actual intake data (check both petitioner and beneficiary
-    // since I-485 intake forms may populate beneficiary fields primarily)
-    const pet = data.petitioner || {};
-    const ben = data.beneficiary || {};
-    const hasPetitionerData = pet.family_name || pet.given_name || pet.date_of_birth || pet.ssn;
-    const hasBeneficiaryData = ben.family_name || ben.given_name || ben.date_of_birth || ben.ssn;
-    if (!hasPetitionerData && !hasBeneficiaryData) {
-      return Response.json(
-        { error: 'No petitioner or beneficiary information could be extracted from this document. Please upload a handwritten immigration intake form (I-130, I-485, or combined).' },
-        { status: 422 }
-      );
-    }
+    // Ensure basic structure exists
+    if (!data.petitioner) data.petitioner = {};
+    if (!data.beneficiary) data.beneficiary = {};
 
     const fieldsExtracted = Object.keys(data.petitioner || {}).filter((k: string) => data.petitioner[k]).length +
                        Object.keys(data.beneficiary || {}).filter((k: string) => data.beneficiary[k]).length;

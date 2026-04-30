@@ -65,23 +65,9 @@ export default function UploadPage() {
 
         const data = await res.json();
 
-        // Validate that we got usable data back
-        if (!data || !data.petitioner || !data.beneficiary) {
-          throw new Error(
-            'Could not extract immigration form data from this document. Please upload an immigration intake form.'
-          );
-        }
-
-        // Check if the extraction found any actual data (petitioner OR beneficiary)
-        const p = data.petitioner;
-        const b = data.beneficiary;
-        const hasPetitioner = p.family_name || p.given_name || p.date_of_birth || p.ssn;
-        const hasBeneficiary = b.family_name || b.given_name || b.date_of_birth || b.ssn;
-        if (!hasPetitioner && !hasBeneficiary) {
-          throw new Error(
-            'No petitioner or beneficiary information could be extracted. Please upload an immigration intake form or filled USCIS form.'
-          );
-        }
+        // Ensure basic structure exists, fill in empty objects if missing
+        if (!data.petitioner) data.petitioner = {};
+        if (!data.beneficiary) data.beneficiary = {};
 
         sessionStorage.setItem('intakeData', JSON.stringify(data));
         router.push('/review');
