@@ -739,11 +739,12 @@ function ReviewPageInner() {
   const SECTION_FORMS: Record<string, string[]> = {
     relationship: ['i130', 'i360'],
     petitioner: ['i130', 'i485', 'i360', 'i601'],
-    biographic: ['i130', 'i601'],
+    biographic: ['i130'],
     beneficiary_biographic: ['i485', 'i601'],
     beneficiary_basic: ['i130', 'i485', 'i765', 'i130a', 'i360', 'i601'],
     beneficiary_marital: ['i130', 'i485', 'i360'],
     beneficiary_entry: ['i130', 'i485', 'i765', 'i601'],
+    beneficiary_last_addr_abroad: ['i130a', 'i485', 'i601'],
     beneficiary_passport: ['i485', 'i765'],
     beneficiary_parents: ['i130a', 'i485', 'i360'],
     beneficiary_employment: ['i130', 'i485', 'i130a'],
@@ -1021,6 +1022,11 @@ function ReviewPageInner() {
           <Field label="City of Birth" value={data.petitioner.city_of_birth} onChange={(v) => updatePetitioner('city_of_birth', v)} confidence={conf('petitioner.city_of_birth')} />
           <Field label="Country of Birth" value={data.petitioner.country_of_birth} onChange={(v) => updatePetitioner('country_of_birth', v)} confidence={conf('petitioner.country_of_birth')} />
         </Row2>
+        <Row>
+          <Field label="Other Names Used" value={data.petitioner.other_names} onChange={(v) => updatePetitioner('other_names', v)} confidence={conf('petitioner.other_names')} />
+          <Field label="Phone" value={data.petitioner.phone} onChange={(v) => updatePetitioner('phone', v)} format="phone" confidence={conf('petitioner.phone')} />
+          <Field label="Email" value={data.petitioner.email} onChange={(v) => updatePetitioner('email', v)} confidence={conf('petitioner.email')} />
+        </Row>
 
         <SubHeading text="Mailing Address" />
         <Row>
@@ -1071,10 +1077,15 @@ function ReviewPageInner() {
         <Row>
           <Field label="Family Name" value={data.petitioner.parent1_family_name} onChange={(v) => updatePetitioner('parent1_family_name', v)} confidence={conf('petitioner.parent1_family_name')} />
           <Field label="Given Name" value={data.petitioner.parent1_given_name} onChange={(v) => updatePetitioner('parent1_given_name', v)} confidence={conf('petitioner.parent1_given_name')} />
+          <Field label="Middle Name" value={data.petitioner.parent1_middle_name} onChange={(v) => updatePetitioner('parent1_middle_name', v)} confidence={conf('petitioner.parent1_middle_name')} />
+        </Row>
+        <Row>
           <SelectField label="Sex" value={data.petitioner.parent1_sex || 'M'} onChange={(v) => updatePetitioner('parent1_sex', v)} options={SEX_OPTIONS} confidence={conf('petitioner.parent1_sex')} />
+          <Field label="Date of Birth" value={data.petitioner.parent1_dob} onChange={(v) => updatePetitioner('parent1_dob', v)} format="date" error={validateDate(data.petitioner.parent1_dob)} confidence={conf('petitioner.parent1_dob')} />
+          <Field label="Country of Birth" value={data.petitioner.parent1_country_of_birth} onChange={(v) => updatePetitioner('parent1_country_of_birth', v)} confidence={conf('petitioner.parent1_country_of_birth')} />
         </Row>
         <Row2>
-          <Field label="Country of Birth" value={data.petitioner.parent1_country_of_birth} onChange={(v) => updatePetitioner('parent1_country_of_birth', v)} confidence={conf('petitioner.parent1_country_of_birth')} />
+          <Field label="City of Residence" value={data.petitioner.parent1_city_of_residence} onChange={(v) => updatePetitioner('parent1_city_of_residence', v)} confidence={conf('petitioner.parent1_city_of_residence')} />
           <Field label="Country of Residence" value={data.petitioner.parent1_country_of_residence} onChange={(v) => updatePetitioner('parent1_country_of_residence', v)} confidence={conf('petitioner.parent1_country_of_residence')} />
         </Row2>
 
@@ -1082,10 +1093,15 @@ function ReviewPageInner() {
         <Row>
           <Field label="Family Name" value={data.petitioner.parent2_family_name} onChange={(v) => updatePetitioner('parent2_family_name', v)} confidence={conf('petitioner.parent2_family_name')} />
           <Field label="Given Name" value={data.petitioner.parent2_given_name} onChange={(v) => updatePetitioner('parent2_given_name', v)} confidence={conf('petitioner.parent2_given_name')} />
+          <Field label="Middle Name" value={data.petitioner.parent2_middle_name} onChange={(v) => updatePetitioner('parent2_middle_name', v)} confidence={conf('petitioner.parent2_middle_name')} />
+        </Row>
+        <Row>
           <SelectField label="Sex" value={data.petitioner.parent2_sex || 'F'} onChange={(v) => updatePetitioner('parent2_sex', v)} options={SEX_OPTIONS} confidence={conf('petitioner.parent2_sex')} />
+          <Field label="Date of Birth" value={data.petitioner.parent2_dob} onChange={(v) => updatePetitioner('parent2_dob', v)} format="date" error={validateDate(data.petitioner.parent2_dob)} confidence={conf('petitioner.parent2_dob')} />
+          <Field label="Country of Birth" value={data.petitioner.parent2_country_of_birth} onChange={(v) => updatePetitioner('parent2_country_of_birth', v)} confidence={conf('petitioner.parent2_country_of_birth')} />
         </Row>
         <Row2>
-          <Field label="Country of Birth" value={data.petitioner.parent2_country_of_birth} onChange={(v) => updatePetitioner('parent2_country_of_birth', v)} confidence={conf('petitioner.parent2_country_of_birth')} />
+          <Field label="City of Residence" value={data.petitioner.parent2_city_of_residence} onChange={(v) => updatePetitioner('parent2_city_of_residence', v)} confidence={conf('petitioner.parent2_city_of_residence')} />
           <Field label="Country of Residence" value={data.petitioner.parent2_country_of_residence} onChange={(v) => updatePetitioner('parent2_country_of_residence', v)} confidence={conf('petitioner.parent2_country_of_residence')} />
         </Row2>
 
@@ -1105,6 +1121,10 @@ function ReviewPageInner() {
             </label>
           ))}
         </div>
+        <Row2>
+          <SelectField label="Citizenship Acquired Through" value={data.petitioner.citizenship_acquired_through} onChange={(v) => updatePetitioner('citizenship_acquired_through', v)} options={[{value:'',label:'--'},{value:'Birth in US',label:'Birth in U.S.'},{value:'Naturalization',label:'Naturalization'},{value:'Parents',label:'Parents'}]} confidence={conf('petitioner.citizenship_acquired_through')} />
+          <SelectField label="Previously Filed Petition" value={data.petitioner.previously_filed_petition} onChange={(v) => updatePetitioner('previously_filed_petition', v)} options={YES_NO} confidence={conf('petitioner.previously_filed_petition')} />
+        </Row2>
 
         <SubHeading text="Employment" />
         <Row2>
@@ -1226,6 +1246,21 @@ function ReviewPageInner() {
           <Field label="Class of Admission" value={data.beneficiary.class_of_admission} onChange={(v) => updateBeneficiary('class_of_admission', v)} confidence={conf('beneficiary.class_of_admission')} />
           <Field label="Date of Arrival" value={data.beneficiary.date_of_arrival} onChange={(v) => updateBeneficiary('date_of_arrival', v)} format="date" error={validateDate(data.beneficiary.date_of_arrival)} confidence={conf('beneficiary.date_of_arrival')} />
         </Row>
+        <Row2>
+          <Field label="Authorized Stay Expiration" value={data.beneficiary.authorized_stay_expiration} onChange={(v) => updateBeneficiary('authorized_stay_expiration', v)} format="date" error={validateDate(data.beneficiary.authorized_stay_expiration)} confidence={conf('beneficiary.authorized_stay_expiration')} />
+        </Row2>
+        </>}
+
+        {showSection('beneficiary_last_addr_abroad') && <>
+        <SubHeading text="Last Address Outside the U.S." />
+        <Row2>
+          <Field label="Street" value={data.beneficiary.last_address_outside_us.street} onChange={(v) => setData(prev => ({...prev, beneficiary: {...prev.beneficiary, last_address_outside_us: {...prev.beneficiary.last_address_outside_us, street: v}}}))} confidence={conf('beneficiary.last_address_outside_us.street')} />
+          <Field label="City" value={data.beneficiary.last_address_outside_us.city} onChange={(v) => setData(prev => ({...prev, beneficiary: {...prev.beneficiary, last_address_outside_us: {...prev.beneficiary.last_address_outside_us, city: v}}}))} confidence={conf('beneficiary.last_address_outside_us.city')} />
+        </Row2>
+        <Row2>
+          <Field label="Province" value={data.beneficiary.last_address_outside_us.province} onChange={(v) => setData(prev => ({...prev, beneficiary: {...prev.beneficiary, last_address_outside_us: {...prev.beneficiary.last_address_outside_us, province: v}}}))} confidence={conf('beneficiary.last_address_outside_us.province')} />
+          <Field label="Country" value={data.beneficiary.last_address_outside_us.country} onChange={(v) => setData(prev => ({...prev, beneficiary: {...prev.beneficiary, last_address_outside_us: {...prev.beneficiary.last_address_outside_us, country: v}}}))} confidence={conf('beneficiary.last_address_outside_us.country')} />
+        </Row2>
         </>}
 
         {showSection('beneficiary_passport') && <>
