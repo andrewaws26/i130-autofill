@@ -738,11 +738,11 @@ function ReviewPageInner() {
   /* Which forms need which sections */
   const SECTION_FORMS: Record<string, string[]> = {
     relationship: ['i130', 'i360'],
-    petitioner: ['i130', 'i360', 'i601'],
+    petitioner: ['i130', 'i485', 'i360', 'i601'],
     biographic: ['i130', 'i601'],
     beneficiary_basic: ['i130', 'i485', 'i765', 'i130a', 'i360', 'i601'],
     beneficiary_marital: ['i130', 'i485', 'i360'],
-    beneficiary_entry: ['i130', 'i485', 'i765'],
+    beneficiary_entry: ['i130', 'i485', 'i765', 'i601'],
     beneficiary_passport: ['i485', 'i765'],
     beneficiary_parents: ['i130a', 'i485', 'i360'],
     beneficiary_employment: ['i130', 'i485', 'i130a'],
