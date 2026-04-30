@@ -231,6 +231,21 @@ export async function POST(request: Request) {
       return Response.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
+    const SUPPORTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+
+    // Validate file types before processing
+    for (const file of files) {
+      const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+      const isImage = SUPPORTED_IMAGE_TYPES.has(file.type);
+      if (!isPdf && !isImage) {
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown';
+        return Response.json(
+          { error: `Unsupported file type: .${ext}. Please upload a PDF or image (JPEG, PNG, GIF, WEBP) of the intake form.` },
+          { status: 400 }
+        );
+      }
+    }
+
     const client = new Anthropic();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -252,13 +267,11 @@ export async function POST(request: Request) {
           },
         });
       } else {
-        // Image file
-        const mediaType = file.type || 'image/jpeg';
         content.push({
           type: 'image',
           source: {
             type: 'base64',
-            media_type: mediaType,
+            media_type: file.type,
             data: base64,
           },
         });
