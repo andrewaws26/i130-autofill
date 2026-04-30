@@ -523,8 +523,7 @@ function ReviewPageInner() {
   const [confidenceMap, setConfidenceMap] = useState<Record<string, 'high' | 'medium' | 'low'>>({});
   const [loaded, setLoaded] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
-  const [pdfBlob485, setPdfBlob485] = useState<Blob | null>(null);
+  const [pdfBlobs, setPdfBlobs] = useState<Record<string, Blob>>({});
   const [genError, setGenError] = useState('');
   const [selectedForms, setSelectedForms] = useState<Set<string>>(new Set(['i130']));
   const [step, setStep] = useState(2);
@@ -726,39 +725,36 @@ function ReviewPageInner() {
     });
   }, []);
 
+  /* Form route mapping */
+  const FORM_ROUTES: Record<string, { route: string; label: string }> = {
+    i130: { route: '/api/generate', label: 'I-130' },
+    i485: { route: '/api/generate-i485', label: 'I-485' },
+    i765: { route: '/api/generate-i765', label: 'I-765' },
+    i130a: { route: '/api/generate-i130a', label: 'I-130A' },
+    i360: { route: '/api/generate-i360', label: 'I-360' },
+    i601: { route: '/api/generate-i601', label: 'I-601' },
+  };
+
   /* Generate PDFs */
   const generate = useCallback(async () => {
     setGenerating(true);
     setGenError('');
-    setPdfBlob(null);
-    setPdfBlob485(null);
+    setPdfBlobs({});
     try {
       const body = JSON.stringify(data);
       const headers = { 'Content-Type': 'application/json' };
+      const results: Record<string, Blob> = {};
 
-      const promises: Promise<void>[] = [];
-
-      if (selectedForms.has('i130')) {
-        promises.push(
-          fetch('/api/generate', { method: 'POST', headers, body })
-            .then(async (res) => {
-              if (!res.ok) throw new Error(await res.text() || `I-130: ${res.status}`);
-              setPdfBlob(await res.blob());
-            })
-        );
-      }
-
-      if (selectedForms.has('i485')) {
-        promises.push(
-          fetch('/api/generate-i485', { method: 'POST', headers, body })
-            .then(async (res) => {
-              if (!res.ok) throw new Error(await res.text() || `I-485: ${res.status}`);
-              setPdfBlob485(await res.blob());
-            })
-        );
-      }
+      const promises = [...selectedForms].map(async (formId) => {
+        const config = FORM_ROUTES[formId];
+        if (!config) return;
+        const res = await fetch(config.route, { method: 'POST', headers, body });
+        if (!res.ok) throw new Error(await res.text() || `${config.label}: ${res.status}`);
+        results[formId] = await res.blob();
+      });
 
       await Promise.all(promises);
+      setPdfBlobs(results);
       setStep(3);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Generation failed.';
@@ -784,11 +780,13 @@ function ReviewPageInner() {
   const download = useCallback(() => {
     const surname = data.petitioner.family_name || 'filled';
     const date = new Date().toISOString().slice(0, 10);
-    if (pdfBlob) downloadBlob(pdfBlob, `I-130_${surname}_${date}.pdf`);
-    if (pdfBlob485) downloadBlob(pdfBlob485, `I-485_${surname}_${date}.pdf`);
+    for (const [formId, blob] of Object.entries(pdfBlobs)) {
+      const label = FORM_ROUTES[formId]?.label || formId.toUpperCase();
+      downloadBlob(blob, `${label}_${surname}_${date}.pdf`);
+    }
     // Auto-clear sensitive data after download
     setTimeout(() => sessionStorage.removeItem('intakeData'), 3000);
-  }, [pdfBlob, pdfBlob485, data.petitioner.family_name, downloadBlob]);
+  }, [pdfBlobs, data.petitioner.family_name, downloadBlob]);
 
   /* Start new */
   const startNew = useCallback(() => {
@@ -931,16 +929,16 @@ function ReviewPageInner() {
       </div>
 
       {/* Success banner - compact notice at top when PDF is ready */}
-      {pdfBlob && (
+      {Object.keys(pdfBlobs).length > 0 && (
         <div
           className="card p-4 mb-6 flex items-center justify-between flex-wrap gap-3"
           style={{ borderLeft: '4px solid var(--success)' }}
         >
           <span className="text-sm font-semibold" style={{ color: 'var(--success)' }}>
-            I-130 Generated Successfully — scroll down to download
+            {Object.keys(pdfBlobs).map(id => FORM_ROUTES[id]?.label || id).join(' + ')} Generated — scroll down to download
           </span>
           <button className="btn btn-primary text-sm px-4 py-2" onClick={download}>
-            Download PDF
+            Download {Object.keys(pdfBlobs).length > 1 ? 'All PDFs' : 'PDF'}
           </button>
         </div>
       )}
@@ -1207,7 +1205,7 @@ function ReviewPageInner() {
             </button>
           </div>
         )}
-        {(pdfBlob || pdfBlob485) ? (
+        {Object.keys(pdfBlobs).length > 0 ? (
           <div className="card p-6" style={{ borderLeft: '4px solid var(--success)' }}>
             <h2
               className="text-xl font-semibold mb-2"
@@ -1216,11 +1214,11 @@ function ReviewPageInner() {
                 color: 'var(--success)',
               }}
             >
-              {[pdfBlob && 'I-130', pdfBlob485 && 'I-485'].filter(Boolean).join(' + ')} Generated Successfully
+              {Object.keys(pdfBlobs).map(id => FORM_ROUTES[id]?.label || id).join(' + ')} Generated Successfully
             </h2>
             <div className="flex items-center justify-center gap-4 mt-4">
               <button className="btn btn-primary text-base px-6 py-3" onClick={download}>
-                Download {pdfBlob && pdfBlob485 ? 'All PDFs' : 'PDF'}
+                Download {Object.keys(pdfBlobs).length > 1 ? 'All PDFs' : 'PDF'}
               </button>
               <button className="btn btn-secondary" onClick={startNew}>
                 Start New
@@ -1233,27 +1231,19 @@ function ReviewPageInner() {
         ) : (
           <>
             {/* Form selection */}
-            <div className="flex items-center justify-center gap-6 mb-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: 'var(--heading)' }}>
-                <input
-                  type="checkbox"
-                  checked={selectedForms.has('i130')}
-                  onChange={() => toggleForm('i130')}
-                  className="accent-[var(--accent-gold)]"
-                  style={{ width: 16, height: 16 }}
-                />
-                I-130
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: 'var(--heading)' }}>
-                <input
-                  type="checkbox"
-                  checked={selectedForms.has('i485')}
-                  onChange={() => toggleForm('i485')}
-                  className="accent-[var(--accent-gold)]"
-                  style={{ width: 16, height: 16 }}
-                />
-                I-485
-              </label>
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mb-4">
+              {Object.entries(FORM_ROUTES).map(([id, { label }]) => (
+                <label key={id} className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: 'var(--heading)' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedForms.has(id)}
+                    onChange={() => toggleForm(id)}
+                    className="accent-[var(--accent-gold)]"
+                    style={{ width: 16, height: 16 }}
+                  />
+                  {label}
+                </label>
+              ))}
             </div>
             <div className="flex items-center justify-center gap-4">
               <button
