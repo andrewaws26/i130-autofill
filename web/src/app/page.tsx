@@ -72,12 +72,14 @@ export default function UploadPage() {
           );
         }
 
-        // Check if the extraction found any actual data
+        // Check if the extraction found any actual data (petitioner OR beneficiary)
         const p = data.petitioner;
-        const hasData = p.family_name || p.given_name || p.date_of_birth || p.ssn;
-        if (!hasData) {
+        const b = data.beneficiary;
+        const hasPetitioner = p.family_name || p.given_name || p.date_of_birth || p.ssn;
+        const hasBeneficiary = b.family_name || b.given_name || b.date_of_birth || b.ssn;
+        if (!hasPetitioner && !hasBeneficiary) {
           throw new Error(
-            'The uploaded document does not appear to be an immigration intake form. No petitioner information was found.'
+            'No petitioner or beneficiary information could be extracted. Please upload an immigration intake form or filled USCIS form.'
           );
         }
 
