@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Automated USCIS I-130 (Petition for Alien Relative) form filling from handwritten intake forms. Uses Claude Opus vision to read handwriting, extract structured data, and fill 100+ PDF form fields including text, checkboxes, and dropdowns.
+Automated USCIS I-130 (Petition for Alien Relative) form filling from intake forms. Uses Claude Opus vision to read handwriting, extract structured data, and fill 100+ PDF form fields including text, checkboxes, and dropdowns. Supports I-130, I-485, and combined intake forms.
 
 Built for Attum Law Office (attumlaw.com). Handles sensitive immigration PII -- treat accordingly.
 
@@ -13,10 +13,11 @@ Built for Attum Law Office (attumlaw.com). Handles sensitive immigration PII -- 
 
 ## Tech Stack
 
-- **Web**: Next.js 16, Tailwind v4 (`@import "tailwindcss"` + `@theme inline`), pdf-lib, Anthropic SDK
+- **Web**: Next.js 16, Tailwind v4 (`@import "tailwindcss"` + `@theme inline`), pdf-lib, mammoth, Anthropic SDK
 - **CLI**: Python 3, pypdf, anthropic SDK
 - **AI**: Claude Opus for vision/handwriting recognition (zero data retention)
 - **PDF**: XFA form fields filled via pdf-lib (web) or pypdf (CLI)
+- **Document parsing**: mammoth for .docx text extraction
 
 ## Critical: XFA Checkbox Index Mappings
 
@@ -29,14 +30,23 @@ The I-130 PDF uses XFA form fields where checkbox indices DO NOT match visual or
 
 ## Extraction Prompt
 
-The extraction prompt in `web/src/app/api/extract/route.ts` (and mirrored in `fill_i130.py`) has been heavily tested and refined against real handwritten intake forms. It handles:
+The extraction prompt in `web/src/app/api/extract/route.ts` (and mirrored in `fill_i130.py`) has been heavily tested and refined against real intake forms. It handles:
 - Hispanic/Latino multi-surname name parsing
 - Handwriting misreads with context clues
 - State abbreviation normalization
 - Cross-referencing petitioner/beneficiary spouse data
 - Ethnicity inference from country of birth
+- Multiple form types (I-130, I-485, combined) with automatic role mapping (e.g., I-485 applicant → beneficiary)
 
 Changes to the extraction prompt should be tested against the sample intake PDF before deploying.
+
+## Supported Upload Formats
+
+- **PDF** -- scanned handwritten or typed intake forms (sent to Claude as document)
+- **Images** -- JPEG, PNG, GIF, WEBP (sent to Claude as image, e.g. phone camera photos)
+- **Word documents** -- .docx/.doc (text extracted via mammoth, sent to Claude as text)
+
+The extract route validates file types upfront and rejects unsupported formats with a clear error message.
 
 ## Common Gotchas
 

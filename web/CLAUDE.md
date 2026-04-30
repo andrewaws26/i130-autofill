@@ -12,7 +12,7 @@ App Router with Tailwind v4 (uses `@import "tailwindcss"` and `@theme inline` in
 
 - `src/app/page.tsx` -- Upload page with mobile camera capture (multi-page photo flow) and desktop drag-and-drop
 - `src/app/review/page.tsx` -- Review/edit form covering all I-130 sections (petitioner, beneficiary, biographic, marriage, parents, employment, immigration history). Includes field validation, auto-formatting, SSN masking, and encrypted draft save/restore.
-- `src/app/api/extract/route.ts` -- Claude Opus vision extraction endpoint. Sends intake images/PDF to Claude, parses JSON response, applies post-processing (state normalization, country normalization, spouse cross-referencing, ethnicity inference). Returns 422 with a clean message for non-intake documents.
+- `src/app/api/extract/route.ts` -- Claude Opus extraction endpoint. Accepts PDF, images (JPEG/PNG/GIF/WEBP), and Word documents (.docx/.doc). PDFs and images are sent to Claude as document/image content; .docx files are parsed via mammoth into text. Supports I-130, I-485, and combined intake forms with automatic petitioner/beneficiary role mapping. Applies post-processing (state normalization, country normalization, spouse cross-referencing, ethnicity inference). Returns 422 with a clean message for non-intake documents, 400 for unsupported file types.
 - `src/app/api/generate/route.ts` -- PDF generation endpoint using pdf-lib. Loads the blank I-130 template, maps all extracted data to form fields (text, checkboxes, dropdowns), and returns the filled PDF as a blob.
 - `src/lib/types.ts` -- TypeScript interfaces (`IntakeData`, `Petitioner`, `Beneficiary`, `Address`, `AddressHistory`) matching the extraction JSON schema. Also exports `createEmptyIntakeData()`.
 - `src/app/globals.css` -- Design system with CSS custom properties. Light theme only, Attum Law Office branding (gold accent `#b8860b`, conservative palette).
@@ -30,8 +30,8 @@ The generate route contains checkbox index mappings for XFA form fields. These i
 
 ## Error Handling
 
-- Extract route returns HTTP 422 with a user-friendly error message when the uploaded document is not an intake form
-- The upload page validates that the response contains usable petitioner/beneficiary data before navigating to review
+- Extract route returns HTTP 400 for unsupported file types (with the rejected extension in the message) and HTTP 422 when the document is not an intake form
+- The upload page validates that the response contains usable petitioner or beneficiary data before navigating to review
 - Raw JSON and technical errors are never shown to the user -- they are replaced with clean messages
 - Error messages are truncated to 200 characters max
 

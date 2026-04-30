@@ -1,17 +1,19 @@
 # I-130 AutoFill
 
-Automatically fills USCIS Form I-130 (Petition for Alien Relative) from handwritten intake forms using AI-powered handwriting recognition.
+Automatically fills USCIS Form I-130 (Petition for Alien Relative) from intake forms using AI-powered extraction. Supports handwritten scans, typed PDFs, phone camera photos, and Word documents (.docx). Also handles I-485 and combined intake forms.
 
 ## How It Works
 
-1. **Upload or photograph** a handwritten intake form (PDF scan or phone camera photos)
-2. **AI reads the handwriting** -- Claude Opus vision extracts 100+ fields from the intake form, handling difficult handwriting, Hispanic multi-surname names, and abbreviations
+1. **Upload** an intake form -- PDF scan, phone camera photo, or Word document (.docx)
+2. **AI extracts the data** -- Claude Opus reads 100+ fields from the intake form, handling handwriting, typed text, Hispanic multi-surname names, and abbreviations. Works with I-130, I-485, and combined intake forms.
 3. **Review and download** -- lawyer reviews all extracted data in an editable form interface, then downloads a filled I-130 PDF ready for filing
 
 ## Features
 
-- Claude Opus vision reads handwritten intake forms with high accuracy
+- Claude Opus extracts data from handwritten, typed, and Word document intake forms
+- Supports I-130, I-485, and combined intake forms with automatic role mapping
 - 100+ I-130 fields auto-filled including checkboxes, dropdowns, and text fields
+- Accepts PDF, JPEG, PNG, GIF, WEBP, and .docx/.doc uploads
 - Mobile camera capture with multi-page photo flow for photographing intake forms
 - Lawyer review/edit interface with field validation before PDF generation
 - Auto-formatting for SSN (XXX-XX-XXXX), dates (MM/DD/YYYY), and phone numbers (XXX-XXX-XXXX)
@@ -28,6 +30,7 @@ Automatically fills USCIS Form I-130 (Petition for Alien Relative) from handwrit
 | Web App | Next.js 16 (App Router) |
 | Styling | Tailwind CSS v4 |
 | PDF Generation | pdf-lib |
+| Document Parsing | mammoth (.docx text extraction) |
 | AI Extraction | Anthropic SDK (Claude Opus, vision) |
 | CLI Tool | Python 3, pypdf |
 | Encryption | Web Crypto API (AES-256-GCM) |
