@@ -524,7 +524,9 @@ function ReviewPageInner() {
   const [loaded, setLoaded] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [pdfBlob485, setPdfBlob485] = useState<Blob | null>(null);
   const [genError, setGenError] = useState('');
+  const [selectedForms, setSelectedForms] = useState<Set<string>>(new Set(['i130']));
   const [step, setStep] = useState(2);
   const [petitionerSSNMasked, setPetitionerSSNMasked] = useState(true);
   const [beneficiarySSNMasked, setBeneficiarySSNMasked] = useState(true);
@@ -711,22 +713,52 @@ function ReviewPageInner() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  /* Generate PDF */
+  /* Toggle form selection */
+  const toggleForm = useCallback((formId: string) => {
+    setSelectedForms(prev => {
+      const next = new Set(prev);
+      if (next.has(formId)) {
+        if (next.size > 1) next.delete(formId); // must keep at least one
+      } else {
+        next.add(formId);
+      }
+      return next;
+    });
+  }, []);
+
+  /* Generate PDFs */
   const generate = useCallback(async () => {
     setGenerating(true);
     setGenError('');
+    setPdfBlob(null);
+    setPdfBlob485(null);
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(body || `Server returned ${res.status}`);
+      const body = JSON.stringify(data);
+      const headers = { 'Content-Type': 'application/json' };
+
+      const promises: Promise<void>[] = [];
+
+      if (selectedForms.has('i130')) {
+        promises.push(
+          fetch('/api/generate', { method: 'POST', headers, body })
+            .then(async (res) => {
+              if (!res.ok) throw new Error(await res.text() || `I-130: ${res.status}`);
+              setPdfBlob(await res.blob());
+            })
+        );
       }
-      const blob = await res.blob();
-      setPdfBlob(blob);
+
+      if (selectedForms.has('i485')) {
+        promises.push(
+          fetch('/api/generate-i485', { method: 'POST', headers, body })
+            .then(async (res) => {
+              if (!res.ok) throw new Error(await res.text() || `I-485: ${res.status}`);
+              setPdfBlob485(await res.blob());
+            })
+        );
+      }
+
+      await Promise.all(promises);
       setStep(3);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Generation failed.';
@@ -734,24 +766,29 @@ function ReviewPageInner() {
     } finally {
       setGenerating(false);
     }
-  }, [data]);
+  }, [data, selectedForms]);
 
-  /* Download */
-  const download = useCallback(() => {
-    if (!pdfBlob) return;
-    const url = URL.createObjectURL(pdfBlob);
+  /* Download helper */
+  const downloadBlob = useCallback((blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `I-130_${data.petitioner.family_name || 'filled'}_${new Date().toISOString().slice(0,10)}.pdf`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+  }, []);
+
+  /* Download all generated PDFs */
+  const download = useCallback(() => {
+    const surname = data.petitioner.family_name || 'filled';
+    const date = new Date().toISOString().slice(0, 10);
+    if (pdfBlob) downloadBlob(pdfBlob, `I-130_${surname}_${date}.pdf`);
+    if (pdfBlob485) downloadBlob(pdfBlob485, `I-485_${surname}_${date}.pdf`);
     // Auto-clear sensitive data after download
-    setTimeout(() => {
-      sessionStorage.removeItem('intakeData');
-      URL.revokeObjectURL(url);
-    }, 3000);
-  }, [pdfBlob, data.petitioner.family_name]);
+    setTimeout(() => sessionStorage.removeItem('intakeData'), 3000);
+  }, [pdfBlob, pdfBlob485, data.petitioner.family_name, downloadBlob]);
 
   /* Start new */
   const startNew = useCallback(() => {
@@ -1170,7 +1207,7 @@ function ReviewPageInner() {
             </button>
           </div>
         )}
-        {pdfBlob ? (
+        {(pdfBlob || pdfBlob485) ? (
           <div className="card p-6" style={{ borderLeft: '4px solid var(--success)' }}>
             <h2
               className="text-xl font-semibold mb-2"
@@ -1179,11 +1216,11 @@ function ReviewPageInner() {
                 color: 'var(--success)',
               }}
             >
-              I-130 Generated Successfully
+              {[pdfBlob && 'I-130', pdfBlob485 && 'I-485'].filter(Boolean).join(' + ')} Generated Successfully
             </h2>
             <div className="flex items-center justify-center gap-4 mt-4">
               <button className="btn btn-primary text-base px-6 py-3" onClick={download}>
-                Download PDF
+                Download {pdfBlob && pdfBlob485 ? 'All PDFs' : 'PDF'}
               </button>
               <button className="btn btn-secondary" onClick={startNew}>
                 Start New
@@ -1195,6 +1232,29 @@ function ReviewPageInner() {
           </div>
         ) : (
           <>
+            {/* Form selection */}
+            <div className="flex items-center justify-center gap-6 mb-4">
+              <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: 'var(--heading)' }}>
+                <input
+                  type="checkbox"
+                  checked={selectedForms.has('i130')}
+                  onChange={() => toggleForm('i130')}
+                  className="accent-[var(--accent-gold)]"
+                  style={{ width: 16, height: 16 }}
+                />
+                I-130
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer text-sm" style={{ color: 'var(--heading)' }}>
+                <input
+                  type="checkbox"
+                  checked={selectedForms.has('i485')}
+                  onChange={() => toggleForm('i485')}
+                  className="accent-[var(--accent-gold)]"
+                  style={{ width: 16, height: 16 }}
+                />
+                I-485
+              </label>
+            </div>
             <div className="flex items-center justify-center gap-4">
               <button
                 className="btn btn-primary btn-generate text-lg px-8 py-3"
@@ -1205,7 +1265,7 @@ function ReviewPageInner() {
                 disabled={generating}
                 onClick={generate}
               >
-                {generating ? 'Generating...' : 'Generate I-130 PDF'}
+                {generating ? 'Generating...' : `Generate ${[...selectedForms].map(f => f.toUpperCase().replace('I', 'I-')).join(' + ')} PDF${selectedForms.size > 1 ? 's' : ''}`}
               </button>
               <button
                 className="btn btn-secondary"
